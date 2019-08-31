@@ -289,7 +289,56 @@ void barral(int arr[], int len, int size) {
 			for (auto mel : v) arr[index++] = mel;
 }
 
+class MultiBigNumbers {
+public:
+	string MultiBigNums(string& s1, string& s2) {
+		if (s1 == "" || s2 == "") return "empty Integer";
+		if (!checkInput(s1) || !checkInput(s2)) return "invalid Integer";
+		bool isPlus = true;
+		if (isMinus(s1, s2)) isPlus = false;
+		if (s1.size() > s2.size()) {
+			string s = s1;
+			s1 = s2;
+			s2 = s;
+		}
+		s1 = (s1[0] == '-' || s1[0] == '+') ? string(next(s1.begin()), s1.end()) : s1;
+		s2 = (s2[0] == '-' || s2[0] == '+') ? string(next(s2.begin()), s2.end()) : s2;
+		int len1 = s1.size();
+		int len2 = s2.size();
+		int k = len1 + len2;
+		vector<unsigned int> c(k + 1, 0);
+		for (int i = 0; i < len1; ++i) {
+			int carry = 0;
+			for (int j = 0; j < len2; ++j) {
+				int sum = (s1[len1 - 1 - i] - '0') * (s2[len2 - 1 - j] - '0') + c[k - i - j] + carry;
+				carry = sum / 10;
+				c[k - i - j] = sum % 10;
+			}
+			if (carry > 0) c[k - i - len2] = carry;
+		}
+		string sret;
+		for (auto i : c)
+			sret.push_back(i + '0');
+		if (!isPlus) sret.insert(sret.begin(), '-');
+		return sret;
+	}
+private:
+	bool checkInput(const string& s) {
+		if ((s[0]<'0' || s[0]>'9') && (s[0] != '+' && s[0] != '-')) return false;
+		if (s == "+" || s == "-") return false;
+		auto i = next(s.begin());
+		for (; i != s.end(); ++i)
+			if (*i<'0' || *i>'9')
+				return false;
+		return true;
+	}
 
+	bool isMinus(string& s1, string& s2) {
+		if (s1[0] != '-'&&s2[0] != '-') return false;
+		if (s1[0] == '-'&&s2[0] == '-') return false;
+		return true;
+	}
+};
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -412,7 +461,8 @@ int main(int argc, char** argv) {
 	float c = 0.0000012;
 	assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
 	
-	
+	MultiBigNumbers obj;
+	cout<<obj.MultiBigNums(string("-10000"), string("--10000")) << endl;
 	system("pause");
 	return 0;
 }
