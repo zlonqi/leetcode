@@ -6,7 +6,6 @@ using namespace std;
 #include<unordered_map>
 #include<algorithm>
 #include<numeric>
-#include<bitset>
 #include<stack>
 #include<time.h>
 #include<iterator>
@@ -17,7 +16,124 @@ using namespace std;
 #include<thread>
 #include<mutex>
 #include<memory>
-#include<fstream>
+#define NDEBUG
+#include<assert.h>
+
+//浮点数比较（数值分析之相对误差和绝对误差）
+const float RELATIVE_ERROR = 1e-6;
+const float ABSOLUTE_ERROR = 1e-6;
+bool IsEqual(float a, float b, float absError)//, float relError
+{
+	if (a == b) return true;
+	return fabs(a - b) < absError;
+	/*cout << fabs(a - b)/fabs(a) << endl;
+	if (a>b) return  (fabs((a - b) / a)>relError) ? true : false;
+	cout << "line 30"<< endl;
+	return  (fabs((a - b) / b)>relError) ? true : false;*/
+}
+//cpp:split()
+void split(const string& s, vector<string>& vret, const char flag = ' ') {
+	vret.clear();
+	istringstream ss(s);
+	string tmp;
+	while (getline(ss, tmp, flag))
+		vret.emplace_back(tmp);
+	return;
+}
+//单例模式
+std::mutex mtx;
+int index = 0;
+void printArray(const vector<int>& v)
+{
+
+	while (index<v.size())
+	{
+		if (mtx.try_lock()) {
+			std::cout << v[index++] << "\t";
+			mtx.unlock();
+		}
+
+	}
+}
+class Singleton {//懒汉单例模式
+private:
+	Singleton() { cout << "getInstance" << endl; }
+	Singleton(const Singleton& obj) {}
+	Singleton& operator=(const Singleton& obj) {}
+	static Singleton* instance;
+	static mutex mtx;
+public:
+	~Singleton() { delete instance; }
+	static Singleton* getInstance();
+};
+mutex Singleton::mtx;
+Singleton* Singleton::instance = nullptr;
+Singleton* Singleton::getInstance() {
+	if (instance == nullptr)
+		if (mtx.try_lock()) {
+			if (instance == nullptr)
+				instance = new Singleton;
+			mtx.unlock();
+		}
+	return instance;
+};
+class SingletonForHungry {//饿汉单例模式，多线程访问无需手动同步，它是自动同步的(getinstance()每次只是返回一个地址而已，并不用创建新对象，所以线程访问无需加锁)
+private:
+	SingletonForHungry() { cout << "getInstance" << endl; }
+	SingletonForHungry(const SingletonForHungry& obj) {}
+	SingletonForHungry& operator= (const SingletonForHungry& obj) {}
+	static SingletonForHungry* instance;
+public:
+	~SingletonForHungry() { delete instance; }
+	static SingletonForHungry* getInstance();
+};
+SingletonForHungry* SingletonForHungry::instance = new SingletonForHungry;
+SingletonForHungry* SingletonForHungry::getInstance() {
+	return instance;
+}
+//编解码
+string decodeString(const string& s) {
+	int n = s.size();
+	string sret;
+	int i = 0;
+	while (i < n) {
+		int num = 0;
+		while (s[i] >= '0'&&s[i] <= '9')
+			num = 10 * num + s[i++] - '0';
+		if (s[i] == '[') ++i;
+		string  ss;
+		while (s[i] >= 'a'&&s[i] <= 'z')
+			ss += s[i++];
+		if (s[i] == ']') ++i;
+		if (num == 0) num = 1;
+		for (int j = 0; j < num; ++j)
+			sret += ss;
+
+	}
+	return sret;
+}
+string inplace(string& s, string& ss, string::iterator i, string::iterator j) {
+	string sret;
+	copy(s.begin(), i, back_inserter(sret));
+	sret += ss;
+	copy(++j, s.end(), back_inserter(sret));
+	return sret;
+}
+string decodeStr(string& s) {
+	while (find(s.begin(), s.end(), ']') != s.end()) {
+		auto i = s.begin();
+		while (*i != ']') ++i;
+		auto j = i;
+		while (*j != '[') --j;
+		if (*j == '[') --j;
+		while (j > s.begin() && *j >= '0'&& *j <= '9') --j;
+		string ss;
+		if (j == s.begin()) ss = decodeString(string(j, i));
+		else ss = decodeString(string(++j, i));
+		s = inplace(s, ss, j, i);
+	}
+	return s;
+}
 
 struct TreePNode {
 	int value;
@@ -76,106 +192,6 @@ private:
 			convertTreeToList(root->right, prev);
 	}
 };
-std::mutex mtx;
-int index = 0;
-void split(const string& s, vector<string>& vret, const char flag = ' ') {
-	vret.clear();
-	istringstream ss(s);
-	string tmp;
-	while (getline(ss, tmp, flag))
-		vret.emplace_back(tmp);
-	return;
-}
-void printArray(const vector<int>& v)
-{
-
-	while (index<v.size())
-	{
-		if (mtx.try_lock()) {
-			std::cout << v[index++] << "\t";
-			mtx.unlock();
-		}
-
-	}
-}
-class Singleton {//懒汉单例模式
-private:
-	Singleton() { cout << "getInstance" << endl; }
-	Singleton(const Singleton& obj) {}
-	Singleton& operator=(const Singleton& obj) {}
-	static Singleton* instance;
-	static mutex mtx;
-public:
-	~Singleton() { delete instance; }
-	static Singleton* getInstance();
-};
-mutex Singleton::mtx;
-Singleton* Singleton::instance = nullptr;
-Singleton* Singleton::getInstance() {
-	if (instance == nullptr)
-		if (mtx.try_lock()) {
-			if (instance == nullptr)
-				instance = new Singleton;
-			mtx.unlock();
-		}
-	return instance;
-};
-class SingletonForHungry {//饿汉单例模式，多线程访问无需手动同步，它是自动同步的(getinstance()每次只是返回一个地址而已，并不用创建新对象，所以线程访问无需加锁)
-private:
-	SingletonForHungry() { cout << "getInstance" << endl; }
-	SingletonForHungry(const SingletonForHungry& obj) {}
-	SingletonForHungry& operator= (const SingletonForHungry& obj) {}
-	static SingletonForHungry* instance;
-public:
-	~SingletonForHungry() { delete instance; }
-	static SingletonForHungry* getInstance();
-};
-SingletonForHungry* SingletonForHungry::instance = new SingletonForHungry;
-SingletonForHungry* SingletonForHungry::getInstance() {
-	return instance;
-}
-string decodeString(const string& s) {
-	int n = s.size();
-	string sret;
-	int i = 0;
-	while (i < n) {
-		int num = 0;
-		while (s[i] >= '0'&&s[i] <= '9')
-			num = 10 * num + s[i++] - '0';
-		if (s[i] == '[') ++i;
-		string  ss;
-		while (s[i] >= 'a'&&s[i] <= 'z')
-			ss += s[i++];
-		if (s[i] == ']') ++i;
-		if (num == 0) num = 1;
-		for (int j = 0; j < num; ++j)
-			sret += ss;
-
-	}
-	return sret;
-}
-string inplace(string& s, string& ss, string::iterator i, string::iterator j) {
-	string sret;
-	copy(s.begin(), i, back_inserter(sret));
-	sret += ss;
-	copy(++j, s.end(), back_inserter(sret));
-	return sret;
-}
-string decodeStr(string& s) {
-	while (find(s.begin(), s.end(), ']') != s.end()) {
-		auto i = s.begin();
-		while (*i != ']') ++i;
-		auto j = i;
-		while (*j != '[') --j;
-		if (*j == '[') --j;
-		while (j > s.begin() && *j >= '0'&& *j <= '9') --j;
-		string ss;
-		if (j == s.begin()) ss = decodeString(string(j, i));
-		else ss = decodeString(string(++j, i));
-		s = inplace(s, ss, j, i);
-	}
-	return s;
-}
 TreePNode* buildTree(TreePNode* root, int val) {
 	TreePNode* cur = new TreePNode(val);
 	if (root == nullptr)
@@ -273,21 +289,17 @@ void barral(int arr[], int len, int size) {
 			for (auto mel : v) arr[index++] = mel;
 }
 
+
 int main(int argc, char** argv) {
-	//注释：        先CTRL+K，然后CTRL+C
+	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
 	//设置随机种子srand(time(0))
 	//获取[m,n]间的随机数 rand()%(n-m+1)+m
 	//未知类型打印cout << typeid(T).name() << endl;
-	/*string source_string = "";//输入数据
-	cin >> source_string;
+	//浮点数的比较尽量不用==和!=，而用fabs(a-b)>=EPSILON 或 fabs(a-b)<=EPSILON
+	//float的精度是7位（即科学记数法7位有效数字），EPSILON=1e-6;double是16位,EPSILON=1e-15;
+	//长循环作为内循环能减少CPU调度，提高运行效率
 
-	iprestore ip(source_string);//数据处理
-	vector<string> format_ip=ip.restoreIpAddresses();
-
-	cout << format_ip.size() << endl;//输出结果
-	for (auto ip : format_ip)
-	cout << ip << endl;*/
 	//unordered_map<int, int> m;
 	//vector<int> v;
 	//for (int i = 0; i < 6; i++)
@@ -395,10 +407,12 @@ int main(int argc, char** argv) {
 	TreePNode* root = nullptr;
 	for (auto i : v) root = buildTree(root, i);
 	cout << getNext(root)->value << endl;*/
-	int a[] = { 6,2,1,7,8,10,16,26,36,66 };
-	TopK obj;
+	/*float a = 0.9999999;
+	float b = 0.9999998;
+	float c = 0.0000012;
+	assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
 	
-	for (auto i : obj.topK(a, len(a), 3)) cout << i << endl;
+	
 	system("pause");
 	return 0;
 }

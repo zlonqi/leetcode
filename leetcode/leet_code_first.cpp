@@ -4338,4 +4338,153 @@ namespace OfferGot {//剑指offer第二版，细节题
 		queue<int> que1;
 		queue<int> que2;
 	};
+	//打印从1到N位最大的数
+	//Solution I:用字符串模拟加一运算
+	void printToMaxNums(int n) {
+		string s = "0";
+		for (;;) {
+			int carry = 1;
+			for (auto i = s.rbegin(); i != s.rend(); ++i) {
+				unsigned int sum = *i - '0' + carry;
+				carry = sum / 10;
+				*i = sum % 10 + '0';
+				if (carry == 0) break;
+			}
+			if (carry > 0) s.insert(s.begin(), '1');
+			if (s.size() > n) break;
+			cout << s << endl;
+		}
+	}
+
+	//Solution II:递归构造全排列
+	class PrintToMaxNumsII {
+	public:
+		void printToMaxNumsII(int n) {
+			string s(n, '0');
+			permutateRecursively(s, 0, n);
+		}
+	private:
+		void permutateRecursively(string& s, int pos, int length) {
+			if (pos == length) {
+				printstringNum(s);
+				return;
+			}
+			for (int i = 0; i < 10; ++i) {
+				s[pos] = i + '0';
+				permutateRecursively(s, pos + 1, length);
+			}
+		}
+
+		void printstringNum(string& s) {
+			auto i = s.begin();
+			for (; i != s.end(); ++i)
+				if (*i > '0') break;
+			if (i == s.end()) return;
+			cout << string(i, s.end()) << endl;
+		}
+
+	};
+
+	//大整数加减法运算
+	//双正、双负、一正一负
+	class PlusBigNumbers {
+	public:
+		string plusTwoBigNum(string s1, string s2) {
+			if (s1 == "" || s2 == "") return "empty Integer";
+			if (!checkInput(s1) || !checkInput(s2)) return "invalid Integer";
+			if (s1[0] == '+'&&s2[0] == '+')
+				return plusTwoPlusNum(string(next(s1.begin()), s1.end()), string(next(s2.begin()), s2.end()));
+			else if ((s1[0] == '+'&&s2[0] != '-') || (s1[0] != '-'&&s2[0] == '+')) {
+				s1 = s1[0] == '+' ? string(next(s1.begin()), s1.end()) : s1;
+				s2 = s2[0] == '+' ? string(next(s2.begin()), s2.end()) : s2;
+				return plusTwoPlusNum(s1, s2);
+			}
+			else if (s1[0] == '-'&&s2[0] == '-') {
+				string sret = plusTwoPlusNum(string(next(s1.begin()), s1.end()), string(next(s2.begin()), s2.end()));
+				sret.insert(sret.begin(), '-');
+				return sret;
+			}
+			else if ((s1[0] >= '0'&&s1[0] <= '9') && (s2[0] >= '0'&&s2[0] <= '9'))
+				return plusTwoPlusNum(s1, s2);
+			else
+				return subTwoNums(s1, s2);
+		}
+	private:
+		bool checkInput(const string& s) {
+			if ((s[0]<'0' || s[0]>'9') && (s[0] != '+' && s[0] != '-')) return false;
+			if (s == "+" || s == "-") return false;
+			auto i = next(s.begin());
+			for (; i != s.end(); ++i)
+				if (*i<'0' || *i>'9')
+					return false;
+			return true;
+		}
+		string plusTwoPlusNum(string& s1, string& s2) {
+			string s;
+			auto i = s1.rbegin();
+			auto j = s2.rbegin();
+			int carry = 0;
+			while (i != s1.rend() || j != s2.rend()) {
+				int a = i == s1.rend() ? 0 : *i - '0';
+				int b = j == s2.rend() ? 0 : *j - '0';
+				int sum = a + b + carry;
+				carry = sum / 10;
+				s.insert(s.begin(), sum % 10 + '0');
+				i = i == s1.rend() ? i : ++i;
+				j = j == s2.rend() ? j : ++j;
+			}
+			if (carry > 0) s.insert(s.begin(), '1');
+			return s;
+		}
+		string subTwoNums(string& s1, string& s2) {
+			bool isPlus = true;
+			if (!adjust(s1, s2)) {
+				isPlus = false;
+
+				string s = s1;
+				s1 = s2;
+				s2 = s;
+			}
+			auto i = s1.rbegin();
+			auto j = s2.rbegin();
+			int carry = 0;
+			int result;
+			while (i != s1.rend() || j != s2.rend()) {
+				int a = i == s1.rend() ? 0 : *i - '0';
+				int b = j == s2.rend() ? 0 : *j - '0';
+				if (a < b) {
+					result = 10 + a - b - carry;
+					carry = 1;
+				}
+				else {
+					result = a - b - carry;
+					carry = 0;
+				}
+				*i = result + '0';
+				i = i == s1.rend() ? i : ++i;
+				j = j == s2.rend() ? j : ++j;
+			}
+			if (!isPlus) return '-' + s1;
+			return s1;
+		}
+		bool adjust(string& s1, string& s2) {
+			if (s1[0] == '-') {
+				string s = s1;
+				s1 = s2;
+				s2 = s;
+			}
+			s1 = s1[0] == '+' ? string(next(s1.begin()), s1.end()) : s1;
+			s2 = string(next(s2.begin()), s2.end());
+			cout << s1 << "\t" << s2 << endl;
+			if (s1.size() > s2.size()) return true;
+			else if (s1.size() < s2.size()) return false;
+			else
+				for (int i = 0; i < s1.size(); ++i)
+					if (s1[i] > s2[i])
+						return true;
+			return false;
+		}
+	};
+	//大整数的乘法运算
+
 }
