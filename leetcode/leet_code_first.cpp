@@ -635,9 +635,12 @@ namespace LinkList
 				delete tmp;
 				continue;
 			}
-			prev->next = cur;
-			prev = cur;
-			cur = cur->next;
+			if (cur == nullptr) break;
+			if (!cur->next || cur->val != cur->next->val) {
+				prev->next = cur;
+				prev = cur;
+				cur = cur->next;
+			}
 		}
 		prev->next = cur;
 		return bg.next;
@@ -4536,4 +4539,28 @@ namespace OfferGot {//剑指offer第二版，细节题
 			return true;
 		}
 	};
+	//O(1)时间删除链表节点
+	//后驱覆盖法
+	void deleteListNode(ListNode* head, ListNode* target) {
+		if (head == nullptr || target == nullptr) return ;
+		if (target->next) { //不是尾节点
+			ListNode* next = target->next;
+			target->val = next->val;
+			target->next = next->next;
+			delete next;
+			next = nullptr;
+		}
+		else if (target==head) {//单个节点
+			head = nullptr;
+			delete target;
+			target = nullptr;
+		}
+		else {//多个节点的尾节点
+			ListNode* cur = head;
+			while (cur->next != target) cur = cur->next;
+			cur->next = nullptr;
+			delete target;
+			target = nullptr;
+		}
+	}
 }
