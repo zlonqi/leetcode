@@ -302,55 +302,23 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-bool matchCoreII(const char* s, const char* p) {
-	if (*p == '*') {
-		while (*p == '*') ++p;
-		if (*p == '\0') return true;
-		while (*s!='\0'&&!matchCoreII(s, p)) ++s;
-		return *s != '\0';
-	}
-	else if (*p == '\0' || *s == '\0') return *p == *s;
-	else if (*p == *s || (*s != '\0'&&*p == '?')) return matchCoreII(++s, ++p);
-	return false;
-}
-bool isValidNum(const char* s) {
-	if (s == nullptr) return false;
-	if (*s == '+' || *s == '-') ++s;
-	if (*s == '\0') return false;
-	if (*s == '.') {
-		++s;
-		if (*s<'0' || *s>'9') return false;
-		while (*s >= '0'&&*s <= '9') ++s;
-	}
-	else {
-		if (*s<'0' || *s>'9') return false;
-		while (*s >= '0'&&*s <= '9') ++s;
-		if (*s == '.') ++s;
-		while (*s >= '0'&&*s <= '9') ++s;
-	}
-	if (*s == '\0') return true;
-	if (*s == 'e' || *s == 'E') {
-		++s;
-		if (*s == '+' || *s == '-') ++s;
-		if (*s<'0' || *s>'9') return false;
-		while (*s >= '0'&&*s <= '9') ++s;
-	}
-	if (*s == '\0') return true;
-	else
-		return false;
-}
-void oddtoFront(vector<int>& v) {
-	if (v.size()==0) return ;
+void featureToFront(vector<int>& v, bool(*func)(int)) {
+	if (v.size() == 0) return;
 	int n = 0;
 	for (auto i : v)
-		if (i %3 == 0) ++n;
-	for (int j = 0; j < n; ++j)
-		for (int i = 1; i < v.size(); ++i)
-			if (v[i] % 3 == 0) {
-				int tmp = v[i];
-				v[i] = v[i - 1];
-				v[i - 1] = tmp;
+		if (func(i)) ++n;
+	for (int i = 0; i<n; ++i)
+		for (int j = 1; j<v.size(); ++j)
+			if (func(v[j])) {
+				int tmp = v[j];
+				v[j] = v[j - 1];
+				v[j - 1] = tmp;
 			}
+}
+//调用扩展代码
+//如奇数前移
+bool isOdd(int num) {
+	return num % 2 == 1;
 }
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
@@ -475,7 +443,7 @@ int main(int argc, char** argv) {
 	assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
 	
 	vector<int> v = { 2,0,6,8,1,3,5,7 };
-	oddtoFront(v);
+	featureToFront(v, isOdd);
 	for (auto i : v) cout << i;
 	system("pause");
 	return 0;

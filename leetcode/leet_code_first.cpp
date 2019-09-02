@@ -4630,4 +4630,24 @@ namespace OfferGot {//剑指offer第二版，细节题
 					v[i - 1] = tmp;
 				}
 	}
+	//解耦成可扩展代码
+	void featureToFront(vector<int>& v, bool(*func)(int)) {
+		if (v.size() == 0) return;
+		int n = 0;
+		for (auto i : v)
+			if (func(i)) ++n;
+		for(int i=0;i<n;++i)
+			for(int j=1;j<v.size();++j)
+				if (func(v[j])) {
+					int tmp = v[j];
+					v[j] = v[j - 1];
+					v[j - 1] = tmp;
+				}
+	}
+	//调用扩展代码
+	//如奇数前移
+	bool isOdd(int num) {
+		return num % 2 == 1;
+	}
+	//调用featureToFront(v, isOdd);
 }
