@@ -294,40 +294,63 @@ struct ListNode {
 	int val;
 	ListNode(int value):val(value){}
 };
-ListNode* RemoveDuplicatesII(ListNode* head) {
-	ListNode bg(-1);
-	ListNode* prev = &bg;
-	ListNode* cur = head;
-	while (cur != nullptr) {
-		bool flag_dup = false;
-		while (cur->next != nullptr && cur->val == cur->next->val) {
-			ListNode* tmp = cur;
-			cur = cur->next;
-			delete tmp;
-			flag_dup = true;
-		}
-		if (flag_dup) {
-			ListNode* tmp = cur;
-			cur = cur->next;
-			delete tmp;
-			continue;
-		}
-		if (cur == nullptr) break;
-		if (!cur->next|| cur->val != cur->next->val) {
-			prev->next = cur;
-			prev = cur;
-			cur = cur->next;
-		}
-	}
-	prev->next = cur;
-	return bg.next;
-}
 ListNode* addListNode(ListNode* head, int val) {
 	if (head == nullptr) return new ListNode(val);
 	ListNode* cur = head;
 	while (cur->next) cur = cur->next;
 	cur->next = new ListNode(val);
 	return head;
+}
+
+bool matchCoreII(const char* s, const char* p) {
+	if (*p == '*') {
+		while (*p == '*') ++p;
+		if (*p == '\0') return true;
+		while (*s!='\0'&&!matchCoreII(s, p)) ++s;
+		return *s != '\0';
+	}
+	else if (*p == '\0' || *s == '\0') return *p == *s;
+	else if (*p == *s || (*s != '\0'&&*p == '?')) return matchCoreII(++s, ++p);
+	return false;
+}
+bool isValidNum(const char* s) {
+	if (s == nullptr) return false;
+	if (*s == '+' || *s == '-') ++s;
+	if (*s == '\0') return false;
+	if (*s == '.') {
+		++s;
+		if (*s<'0' || *s>'9') return false;
+		while (*s >= '0'&&*s <= '9') ++s;
+	}
+	else {
+		if (*s<'0' || *s>'9') return false;
+		while (*s >= '0'&&*s <= '9') ++s;
+		if (*s == '.') ++s;
+		while (*s >= '0'&&*s <= '9') ++s;
+	}
+	if (*s == '\0') return true;
+	if (*s == 'e' || *s == 'E') {
+		++s;
+		if (*s == '+' || *s == '-') ++s;
+		if (*s<'0' || *s>'9') return false;
+		while (*s >= '0'&&*s <= '9') ++s;
+	}
+	if (*s == '\0') return true;
+	else
+		return false;
+}
+void oddtoFront(vector<int>& v) {
+	if (v.size()==0) return ;
+	int n = 0;
+	for (auto i : v)
+		if (i %3 == 0) ++n;
+	for (int j = 0; j < n; ++j)
+		for (int i = 1; i < v.size(); ++i)
+			if (v[i] % 3 == 0) {
+				int tmp = v[i];
+				v[i] = v[i - 1];
+				v[i - 1] = tmp;
+			}
 }
 int main(int argc, char** argv) {
 	//×¢ÊÍ£º     ÏÈCTRL+K£¬È»ºóCTRL+C
@@ -451,29 +474,9 @@ int main(int argc, char** argv) {
 	float c = 0.0000012;
 	assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
 	
-	ListNode* head = nullptr;
-	vector<int> v = { 0,0,1,1,2,2,6,6 };
-	for (auto i : v) head=addListNode(head,i);
-	cout << "create List successfully" << endl;
-	ListNode* p = head;
-	while (p) {
-		cout << p->val << endl;
-		p = p->next;
-	}
-	ListNode* cur=RemoveDuplicatesII(head);
-	cout << "remove successfully" << endl;
-	while (cur) {
-		cout << cur->val;
-		cur = cur->next;
-	}
-	ListNode* tmp = cur;
-	while (tmp) {
-		cur = tmp->next;
-		delete tmp;
-		tmp = cur;
-	}
-	tmp = nullptr;
-	cur = nullptr;
+	vector<int> v = { 2,0,6,8,1,3,5,7 };
+	oddtoFront(v);
+	for (auto i : v) cout << i;
 	system("pause");
 	return 0;
 }

@@ -4563,4 +4563,71 @@ namespace OfferGot {//剑指offer第二版，细节题
 			target = nullptr;
 		}
 	}
+	//正则匹配表达式(.和*)
+	//有限状态机
+
+	bool matchCore(const char* s, const char* p) {
+		if (*p == '\0') return *s == '\0';
+		if (*(p + 1) == '*') 
+			if (*p == *s || (*p == '.'&&*s != '\0'))
+				return matchCore(s + 1, p + 2) || matchCore(s + 1, p) || matchCore(s, p + 2);//a*可以有3种状态：*不起作用，将前一个字符重复，将前一个字符注销
+			else 
+				return matchCore(s + 1, p + 2);//如果当前字符不匹配，且下一个模式串字符是*，则注销当前字符
+		if (*p == *s || (*p == '.'&&*s != '\0')) return matchCore(s + 1, p + 1);
+		return false;
+	}
+	//正则匹配表达式(*和?)
+	//此处?表示任意单个字符，*表示任意长度的字符串
+	bool matchCoreII(const char* s, const char* p) {
+		if (*p == '*') {
+			while (*p == '*') ++p;
+			if (*p == '\0') return true;
+			while (*s != '\0' && !matchCoreII(s, p)) ++s;
+			return *s != '\0';
+		}
+		else if (*p == '\0' || *s == '\0') return *p == *s;
+		else if (*p == *s || (*s != '\0'&&*p == '?')) return matchCoreII(++s, ++p);
+		return false;
+	}
+	//判断表示数值的字符串是否有效
+	bool isValidNum(const char* s) {
+		if (s == nullptr) return false;
+		if (*s == '+' || *s == '-') ++s;
+		if (*s == '\0') return false;
+		if (*s == '.') {
+			++s;
+			if (*s<'0' || *s>'9') return false;
+			while (*s >= '0'&&*s <= '9') ++s;
+		}
+		else {
+			if (*s<'0' || *s>'9') return false;
+			while (*s >= '0'&&*s <= '9') ++s;
+			if (*s == '.') ++s;
+			while (*s >= '0'&&*s <= '9') ++s;
+		}
+		if (*s == '\0') return true;
+		if (*s == 'e' || *s == 'E') {
+			++s;
+			if (*s == '+' || *s == '-') ++s;
+			if (*s<'0' || *s>'9') return false;
+			while (*s >= '0'&&*s <= '9') ++s;
+		}
+		if (*s == '\0') return true;
+		else
+			return false;
+	}
+	//所有奇数位于偶数前面，相对位置不变
+	void oddtoFront(vector<int>& v) {
+		if (v.size() == 0) return;
+		int n = 0;
+		for (auto i : v)
+			if (i % 2 == 1) ++n;  //Flag
+		for (int j = 0; j < n; ++j)
+			for (int i = 1; i < v.size(); ++i)
+				if (v[i] % 2 == 1) {//此处应和Flag处的表达式 x%2 == 1一致
+					int tmp = v[i];
+					v[i] = v[i - 1];
+					v[i - 1] = tmp;
+				}
+	}
 }
