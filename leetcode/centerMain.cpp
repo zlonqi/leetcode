@@ -302,24 +302,7 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-void featureToFront(vector<int>& v, bool(*func)(int)) {
-	if (v.size() == 0) return;
-	int n = 0;
-	for (auto i : v)
-		if (func(i)) ++n;
-	for (int i = 0; i<n; ++i)
-		for (int j = 1; j<v.size(); ++j)
-			if (func(v[j])) {
-				int tmp = v[j];
-				v[j] = v[j - 1];
-				v[j - 1] = tmp;
-			}
-}
-//调用扩展代码
-//如奇数前移
-bool isOdd(int num) {
-	return num % 2 == 1;
-}
+
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -443,8 +426,15 @@ int main(int argc, char** argv) {
 	assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
 	
 	vector<int> v = { 2,0,6,8,1,3,5,7 };
-	featureToFront(v, isOdd);
-	for (auto i : v) cout << i;
+	ListNode* head = nullptr;
+	for (auto i : v)
+		head = addListNode(head, i);
+	ListNode* pos = head;
+	while (pos->next)
+		pos = pos->next;
+	pos->next = pos;
+	pos=LinkedListCycleII(head);
+	cout << pos->val << endl;
 	system("pause");
 	return 0;
 }

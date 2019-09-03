@@ -781,35 +781,39 @@ namespace LinkList
 	};
 	//Linked List Cycle,Is Exiting
 	//时间复杂度O(n)，空间复杂度O(1)
-	bool LinkedListCycle(ListNode* head) {
-		ListNode* slow = head;
-		ListNode* fast = head;
-		while (fast && fast->next) {
-			slow = slow->next;
-			fast = fast->next->next;
-			if (slow == fast)
-				return true;
-		}
-		return false;
-	}
-	//Linked List Cycle II,Locate the begining node of cycle.
-	//时间复杂度O(n)，空间复杂度O(1)	
-	ListNode* LinkedListCycleII(ListNode* head) {
+	bool LinkedListCycle(ListNode* head, ListNode** pos = nullptr) {
 		ListNode* slow = head;
 		ListNode* fast = head;
 		while (fast && fast->next) {
 			slow = slow->next;
 			fast = fast->next->next;
 			if (slow == fast) {
-				ListNode* cur = head;
-				while (cur != slow) {
-					cur = cur->next;
-					slow = slow->next;
-				}
-				return cur;
+				*pos = fast;
+				return true;
 			}
 		}
-		return nullptr;
+		return false;
+	}
+	//Linked List Cycle II,Locate the begining node of cycle.
+	//时间复杂度O(n)，空间复杂度O(1)	
+	ListNode* LinkedListCycleII(ListNode* head) {
+		ListNode* pos;
+		if (!LinkedListCycle(head, &pos)) return nullptr;
+		ListNode* cur = pos;
+		int loopSize = 1;
+		while (cur->next != pos) {
+			++loopSize;
+			cur = cur->next;
+		}
+		ListNode* fast = head;
+		for (int i = 0; i < loopSize - 1; ++i)
+			fast = fast->next;
+		pos = head;
+		while (fast->next != pos) {
+			fast = fast->next;
+			pos = pos->next;
+		}
+		return pos;
 	}
 	//Reorder Linked List
 	//For example, Given {1,2,3,4,5,6}, reorder it to {1,6,2,5,3,4}.
@@ -4616,7 +4620,8 @@ namespace OfferGot {//剑指offer第二版，细节题
 		else
 			return false;
 	}
-	//所有奇数位于偶数前面，相对位置不变
+	//用常数空间使所有奇数位于偶数前面，相对位置不变
+	//以时间换空间
 	void oddtoFront(vector<int>& v) {
 		if (v.size() == 0) return;
 		int n = 0;
