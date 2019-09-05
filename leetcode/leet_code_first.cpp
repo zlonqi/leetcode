@@ -16,7 +16,7 @@ using namespace std;
 #include<unordered_set>
 #include<bitset>
 #include<time.h>
-
+#include<assert.h>
 
 //第一遍
 namespace Array {
@@ -4153,12 +4153,14 @@ namespace ClassicalSortions {
 		}
 	};
 }
-namespace OfferGot {//剑指offer第二版，细节题
+namespace OfferGot {
+	//剑指offer第二版，细节题
 	//顺时针打印矩阵
 	class PrintMatrixClockwisely {
 	public:
 		void printMatrixClockwisely(const vector<vector<int>>& vv) {
 			if (vv.empty()||vv[0].empty()) return;
+
 			int m = vv.size(), n = vv[0].size();
 			int start = 0;
 			while (m > 2 * start&&n > 2 * start) {
@@ -4655,4 +4657,117 @@ namespace OfferGot {//剑指offer第二版，细节题
 		return num % 2 == 1;
 	}
 	//调用featureToFront(v, isOdd);
+
+	//设计数据结构--类栈，使之具有函数push,pop,再增加获得最小值的函数 min，这3个函数的时间复杂度为O(1)
+	//用空间换时间方法，每次push时，往辅助栈压入当前最小值，每次pop时，辅助栈也pop，min函数则返回辅助栈栈顶元素
+	template<typename T>
+	class StackLike {
+	private:
+		stack<T> stk;
+		stack<T> stkMin;
+	public:
+		T min() {
+			assert(!stk.empty() && !stkMin.empty());
+			return stkMin.top();
+		}
+		void push(T val) {
+			stk.push(T);
+			if (stkMin.empty()|| T < stkMin.top())
+				stkMin.push(T);
+			else
+				stkMin.push(stkMin.top());
+		}
+		void pop() {
+			if (stk.empty()|| stkMin.empty()) return;
+			stk.pop(); stkMin.pop();
+		}
+	};
+	//求以一定顺序入栈的所有可能的出栈次序的情况总数
+	//Solution : 等于求，卡塔兰数 (2*n)!/(n+1)!/n!
+	//判断一个序列是否为以一定次序入栈的可能的出栈序列
+	bool isPopSequence(vector<int>& va, vector<int>& vb) {
+		if (va.empty() || vb.empty()) return false;
+		if (va.size() != vb.size()) return false;
+		stack<int> stkHelper;
+		for (auto i = vb.rbegin(); i != vb.rend(); ++i)
+			stkHelper.push(*i);
+		stack<int> stk;
+		for (auto i : va)
+			if (i == stkHelper.top()) stkHelper.pop();
+			else 
+				stk.push(i);
+		while (!stk.empty() && !stkHelper.empty() && stk.top() == stkHelper.top())
+			stk.pop(), stkHelper.pop();
+		return stk.empty();
+	}
+	//输出以一定顺序入栈序列的所有可能的出栈序列
+	//Solution I : 对入栈序列全排列next_permutation()，依次用isPopSequence排出不可能的情况
+	//Solution II:模拟压栈和弹栈，递归
+	//我的模拟--不太优雅，要去重
+	void pushOrnot(vector<int>& v, int start, vector<int> cur, stack<int>& stk, unordered_set<string>& vret) {
+		if (cur.size() == v.size()) {
+			string s;
+			for (auto i : cur) s += i + '0';
+			vret.insert(s);
+			return;
+		}
+		if (!stk.empty()) {
+			for (int i = 0; i <= stk.size(); ++i) {
+				stack<int> bak = stk;
+				for (int j = 0; j < i; ++j) {
+					cur.push_back(stk.top());
+					stk.pop();
+				}
+				if (cur.size() == v.size()) pushOrnot(v, start, cur, stk, vret);
+				if (start != v.size()) {
+					cur.push_back(v[start]);
+					pushOrnot(v, start + 1, cur, stk, vret);
+					cur.pop_back();
+					stk.push(v[start]);
+					pushOrnot(v, start + 1, cur, stk, vret);
+					if (!stk.empty()) stk.pop();
+				}
+				for (int j = 0; j < i; ++j) cur.pop_back();
+				stk = bak;
+			}
+		}
+		else {
+			if (start != v.size()) {
+				cur.push_back(v[start]);
+				pushOrnot(v, start + 1, cur, stk, vret);
+				cur.pop_back();
+				stk.push(v[start]);
+				pushOrnot(v, start + 1, cur, stk, vret);
+				if (!stk.empty()) stk.pop();
+			}
+		}
+	}
+	//网上找的更优雅些--
+	void pushOrnotII(vector<int>&v, int start, int N, vector<int>& cur, stack<int>& stk, vector<vector<int>>& vret) {
+		if (start == N) {
+			if (!stk.empty()) {
+				int top = stk.top();
+				stk.pop();
+				cur.push_back(top);
+				pushOrnotII(v, start, N, cur, stk, vret);//仍然令start=N,使之继续弹栈
+				cur.pop_back();
+				stk.push(top);
+			}
+			else
+				vret.push_back(cur);
+		}
+		else {
+			stk.push(v[start]);
+			pushOrnotII(v, start + 1, N, cur, stk, vret);
+			stk.pop();
+			if (!stk.empty()) {
+				int top = stk.top();
+				stk.pop();
+				cur.push_back(top);
+				pushOrnotII(v, start, N, cur, stk, vret);
+				cur.pop_back();
+				stk.push(top);
+			}
+		}
+	}
 }

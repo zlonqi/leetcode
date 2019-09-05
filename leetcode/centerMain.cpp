@@ -302,7 +302,41 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-
+void pushOrnotII(vector<int>&v, int start, int N, vector<int>& cur, stack<int>& stk, vector<vector<int>>& vret) {
+	if (start == N) {
+		if (!stk.empty()) {
+			int top = stk.top();
+			stk.pop();
+			cur.push_back(top);
+			pushOrnotII(v, start, N, cur, stk, vret);//仍然令start=N,使之继续弹栈
+			cur.pop_back();
+			stk.push(top);
+		}
+		else
+			vret.push_back(cur);
+	}
+	else {
+		stk.push(v[start]);
+		pushOrnotII(v, start + 1, N, cur, stk, vret);
+		stk.pop();
+		if (!stk.empty()) {
+			int top = stk.top();
+			stk.pop();
+			cur.push_back(top);
+			pushOrnotII(v, start, N, cur, stk, vret);
+			cur.pop_back();
+			stk.push(top);
+		}
+	}
+}
+vector<vector<int>> allPossiblePopSequences(vector<int>& v) {
+	if (v.empty()) return vector<vector<int>>();
+	vector<vector<int>> vret;
+	vector<int> cur;
+	stack<int> stk;
+	pushOrnotII(v, 0, v.size(), cur, stk, vret);
+	return vret;
+}
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -425,16 +459,11 @@ int main(int argc, char** argv) {
 	float c = 0.0000012;
 	assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
 	
-	vector<int> v = { 2,0,6,8,1,3,5,7 };
-	ListNode* head = nullptr;
-	for (auto i : v)
-		head = addListNode(head, i);
-	ListNode* pos = head;
-	while (pos->next)
-		pos = pos->next;
-	pos->next = pos;
-	pos=LinkedListCycleII(head);
-	cout << pos->val << endl;
+	vector<int> v = { 1,2,3,4,5};
+	for (auto vv : allPossiblePopSequences(v)) {
+		for (auto v : vv) cout << v;
+		cout << endl;
+	}
 	system("pause");
 	return 0;
 }
