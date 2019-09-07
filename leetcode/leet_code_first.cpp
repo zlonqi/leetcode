@@ -2580,7 +2580,8 @@ namespace BFS {
 		return layer;
 	}
 }
-namespace DFS {
+namespace DFS
+{
 	//Surround Regions
 	//类似于区域划分问题,DFS
 	//需求：把被X包围的O用X填充
