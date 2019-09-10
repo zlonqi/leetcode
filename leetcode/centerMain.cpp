@@ -192,8 +192,9 @@ private:
 			convertTreeToList(root->right, prev);
 	}
 };
-TreePNode* buildTree(TreePNode* root, int val) {
-	TreePNode* cur = new TreePNode(val);
+
+TreeNode* buildTree(TreeNode* root, int val) {
+	TreeNode* cur = new TreeNode(val);
 	if (root == nullptr)
 		root = cur;
 	else {
@@ -302,41 +303,25 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-void pushOrnotII(vector<int>&v, int start, int N, vector<int>& cur, stack<int>& stk, vector<vector<int>>& vret) {
-	if (start == N) {
-		if (!stk.empty()) {
-			int top = stk.top();
-			stk.pop();
-			cur.push_back(top);
-			pushOrnotII(v, start, N, cur, stk, vret);//仍然令start=N,使之继续弹栈
-			cur.pop_back();
-			stk.push(top);
-		}
-		else
-			vret.push_back(cur);
+class allPermutation {
+public:
+	void permutation(string& s) {
+		if (s.empty()) return;
+		return recurPermutation(s, &s[0]);
 	}
-	else {
-		stk.push(v[start]);
-		pushOrnotII(v, start + 1, N, cur, stk, vret);
-		stk.pop();
-		if (!stk.empty()) {
-			int top = stk.top();
-			stk.pop();
-			cur.push_back(top);
-			pushOrnotII(v, start, N, cur, stk, vret);
-			cur.pop_back();
-			stk.push(top);
+private:
+	void recurPermutation(string& s, char* begin) {
+		if (*begin == '\0') {
+			cout << s << endl;
+			return;
+		}
+		for (char* p = begin; *p != '\0'; ++p) {
+			swap(*begin, *p);
+			recurPermutation(s, begin + 1);
+			swap(*begin, *p);
 		}
 	}
-}
-vector<vector<int>> allPossiblePopSequences(vector<int>& v) {
-	if (v.empty()) return vector<vector<int>>();
-	vector<vector<int>> vret;
-	vector<int> cur;
-	stack<int> stk;
-	pushOrnotII(v, 0, v.size(), cur, stk, vret);
-	return vret;
-}
+};
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -459,11 +444,18 @@ int main(int argc, char** argv) {
 	float c = 0.0000012;
 	assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
 	
-	vector<int> v = { 1,2,3,4,5};
-	for (auto vv : allPossiblePopSequences(v)) {
-		for (auto v : vv) cout << v;
-		cout << endl;
-	}
+	/*stringstream ss;
+	ostream os(ss.rdbuf());
+	istream is(ss.rdbuf());
+	os << "hello,world!";
+	char c;
+	while (is.get(c))
+		cout << c;*/
+	//cout << os.str();
+	
+	allPermutation obj;
+	string s = "abv";
+	obj.permutation(s);
 	system("pause");
 	return 0;
 }

@@ -4771,4 +4771,139 @@ namespace OfferGot {
 			}
 		}
 	}
+	//判断是否为二叉排序树上的后续遍历序列
+	bool isValidSearchTree(const vector<int>& v, int start, int end);
+	bool isPostTraversal(const vector<int>& v) {
+		if (v.empty()) return false;
+		return isValidSearchTree(v, 0, v.size() - 1);
+	}
+	bool isValidSearchTree(const vector<int>& v, int start, int end) {
+		if (start >= end) return true;
+	
+		int rootVal = v[end];
+		int i = end-1;
+		while (i >= start&&v[i] > rootVal) --i;
+		
+		int j = i;
+		while (j >= start&& v[j] < rootVal) --j;
+		if (j >= start) return false;
+		return isValidSearchTree(v, start, i) && isValidSearchTree(v, i+1, end - 1);
+	}
+	//序列化和反序列化 二叉树
+	//前序遍历来序列化为树的线性表示，通过线性表示序列来重构二叉树以实现反序列化
+	class SerialBinTree {
+		//测试用例和代码
+		//stringstream ss;
+		//ostream os(ss.rdbuf());
+		//istream is(ss.rdbuf());
+		//vector<int> v = { 5,2,3,6,1,8 };
+		//TreeNode* root = nullptr;
+		//for (auto i : v) root = buildTree(root, i);
+		//SerialBinTree obj;
+		//obj.serial(root, os);
+		//cout << ss.str() << endl;
+		//TreeNode* reroot = nullptr;
+		//reroot = obj.deSerial(reroot, is);
+		//printTree(reroot);
+	public:
+		void serial(TreeNode* root, ostream& stream) {
+			if (root == nullptr) {
+				stream << '$';
+				return;
+			}
+			stream << root->value;
+			serial(root->left, stream);
+			serial(root->right, stream);
+		}
+		TreeNode* deSerial(TreeNode* root, istream& stream) {
+			int num;
+			if (readChar(num, stream)) {
+				root = new TreeNode(num);
+				root->left = deSerial(root->left, stream);
+				root->right = deSerial(root->right, stream);
+			}
+			return root;
+		}
+	private:
+		bool readChar(int& num, istream& stream) {
+			char c;
+			stream.get(c);
+			if (c<'0' || c>'9') return false;
+			num = c - '0';
+			return true;
+		}
+	};
+	//全排列
+	//递归或next_permutation()，此处用递归
+	class allPermutation {
+	public:
+		void permutation(string& s) {
+			if (s.empty()) return;
+			return recurPermutation(s, &s[0]);
+		}
+	private:
+		void recurPermutation(string& s, char* begin) {
+			if (begin == '\0') {
+				cout << s << endl;
+				return;
+			}
+			for (char* p = begin; *p != '\0'; ++p) {
+				swap(*begin, *p);
+				recurPermutation(s, begin+1);
+				swap(*begin, *p);
+			}
+		}
+	};
+	//找出数组中出现次数超过一半的数
+	//隐含了只有一个这样的数
+	//Solution I:当数组不能修改时，根据该数的个数大于其他所有数的总个数，用加一减一法，时间复杂度O(N)
+	bool checkMoreHalf(const vector<int>& v,int num) {
+		int count = 0;
+		for (auto i : v)
+			if (i == num)
+				++count;
+		return count > v.size() / 2;
+	}
+	int findApearMoreHalf(const vector<int>& v) {
+		assert(!v.empty());
+		int res;
+		int count = 0;
+		for (int i = 0; i < v.size(); ++i) {
+			if (count == 0) {
+				res = v[i];
+				count = 1;
+			}
+			else if (res == v[i]) count++;
+			else --count;
+		}
+		assert(checkMoreHalf(v, res));
+		return res;
+	}
+	//Solution II:可以修改原数组，又相当于找其的中位数，即第N/2大的数
+	//用 Quick Select ，时间复杂度为O(N),快选，每次选一部分，扔掉另一部分，所以是O(N),假设每次扔掉一半.T(N) = n + n / 2 + n / 4 + n / 8 + n / 2 ^ k = n*(1 - 2 ^ -k) / (1 - 2 ^ -1) = 2N
+	class QuickSelect {
+	public:
+		int findApearMoreHalf(vector<int>& v) {
+			assert(!v.empty());
+			return quickSelect(v,v.size()/2);
+		}
+		int quickSelect(vector<int>& v,int k) {
+			int start = 0;
+			int end = v.size() - 1;
+			int pos = partition(v,start,end);
+			while (pos != k) {
+				if (pos < k)
+					pos = partition(v, pos + 1, end);
+				else
+					pos = partition(v, start, pos - 1);
+			}
+			assert(checkMoreHalf(v, v[pos]));
+			return v[pos];
+		}
+	private:
+		int partition(vector<int>& v,int start,int end) {
+
+		}
+	};
+	//找出数组中出现次数超过1/3的数
 }
