@@ -453,9 +453,7 @@ int main(int argc, char** argv) {
 		cout << c;*/
 	//cout << os.str();
 	
-	allPermutation obj;
-	string s = "abv";
-	obj.permutation(s);
+	assert(1 == 0);
 	system("pause");
 	return 0;
 }

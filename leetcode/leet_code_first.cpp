@@ -4880,7 +4880,8 @@ namespace OfferGot {
 		return res;
 	}
 	//Solution II:可以修改原数组，又相当于找其的中位数，即第N/2大的数
-	//用 Quick Select ，时间复杂度为O(N),快选，每次选一部分，扔掉另一部分，所以是O(N),假设每次扔掉一半.T(N) = n + n / 2 + n / 4 + n / 8 + n / 2 ^ k = n*(1 - 2 ^ -k) / (1 - 2 ^ -1) = 2N
+	//Solution STL:nth_element()寻找中位数
+	//也可用 Quick Select ，时间复杂度为O(N),快选，每次选一部分，扔掉另一部分，所以是O(N),假设每次扔掉一半.T(N) = n + n / 2 + n / 4 + n / 8 + n / 2 ^ k = n*(1 - 2 ^ -k) / (1 - 2 ^ -1) = 2N
 	class QuickSelect {
 	public:
 		int findApearMoreHalf(vector<int>& v) {
@@ -4906,4 +4907,59 @@ namespace OfferGot {
 		}
 	};
 	//找出数组中出现次数超过1/3的数
+
+	//最小的K个数
+	//Solution I :若数组可以修改，则借用partion的思想，即Quick Select 找到第K大的数，该数和其左边即是最小的K个数，时间复杂度为O(N)
+	//Solution II:如数组不可修改，则维护一K最大堆，时间复杂度为N*lgK，非常适合海量数据处理，因为内存不够，分批次读入
+
+	//数据流中的中位数
+	//Solution I:数组+Quick Select 添加时间复杂度O(1),查找时间复杂度O(n)
+	//Solution II: 数组+插排 添加时间复杂度O(n)，查找时间复杂度O(1)
+	//Solution III:链表+插排 添加时间复杂度O(n)，查找时间复杂度O(1)
+	//Solution IV: 大堆小堆法 添加时间复杂度O(logN)，查找时间复杂度O(1)
+	//大队小堆法，指第奇数个放入小堆，偶数个放入大堆，总数为奇数时返回小堆堆顶元素，偶数时返回大堆顶和小堆顶的平均数
+	template<typename T>
+	class DynamicMiddleNum {
+	public:
+		void add(T num) {
+			int size = min.size() + max.size();
+			if (size & 1 == 0) {
+				if (max.size() > 0 && num < max[0]) {
+					max.push_back(num);
+					push_heap(max.begin(), max.end(), less<T>());
+
+					num = max[0];
+
+					pop_heap(max.begin(), max.end(), less<T>());
+					max.pop_back();
+				}
+				min.push_back(num);
+				push_heap(min.begin(), min.end(), greater<T>());
+			}
+			else {
+				if (min.size() > 0 && num > min[0]) {
+					min.push_back(num);
+					push_heap(min.begin(), min.end(), greater<T>());
+
+					num = min[0];
+
+					pop_heap(min.begin(), min.end(), greater<T>());
+					min.pop_back();
+				}
+				max.push_back(num);
+				push_heap(max.begin(), max.end(), less<T>());
+			}
+		}
+		T getMidNum() {
+			int size = min.size() + max.size();
+			assert(size > 0);
+			if (size & 1)
+				return min[0];
+			else
+				return (max[0] + min[0]) / 2;
+		}
+	private:
+		vector<T> min;
+		vector<T> max;
+	};
 }
