@@ -4962,4 +4962,64 @@ namespace OfferGot {
 		vector<T> min;
 		vector<T> max;
 	};
+	//求1-n中出现数字1的总个数
+	//Solution I:暴力枚举法，时间复杂度O(N*logN)
+	//Solution II:数学观察，排列解法，时间复杂度O(logN)
+	class Apear1Count {
+	public:
+		int count1(int n) {
+			if (n <= 0) return 0;
+			string s;
+			while (n != 0) {
+				s.insert(s.begin(), n % 10 + '0');
+				n /= 10;
+			}
+			return permutateCount(s.c_str());
+		}
+	private:
+		int permutateCount(const char* c) {
+			if (!c || *c == '\0') return 0;
+
+			int fstNum = *c - '0';
+			int len = strlen(c);
+
+			if (len == 1 && fstNum == 0) return 0;
+			if (len == 1 && fstNum >= 1) return 1;
+
+			int fistCounts;
+			if (fstNum > 1) fistCounts = pow(10, len - 1);
+			if (fstNum == 1) fistCounts = atoi(c + 1) + 1;
+
+			int otherDigitBeOne = fstNum*(len - 1)*pow(10, len - 2);
+			int recurvCounts = permutateCount(c + 1);
+			return fistCounts + otherDigitBeOne + recurvCounts;
+		}
+	};
+	//1-n的整数中1出现的个数
+	int getNthCharOfNumString(int n) {
+		assert(n >= 0);
+		if (n < 10) return n;
+		if (n == 10) return 1;
+		int sum = 1;
+		int i = 0;
+		while (sum < n) {
+			++i;
+			sum += i*(pow(10, i) - pow(10, i - 1));
+		}
+		if (sum == n) return 9;
+		int dif = sum - n;
+		int topNum = (int)pow(10, i) - 1;
+		int base = i;
+		while (dif > base) {
+			dif -= base;
+			--topNum;
+		}
+		int ret;
+		while (topNum > 0 && dif>0) {
+			ret = topNum % 10;
+			topNum /= 10;
+			--dif;
+		}
+		return ret;
+	}
 }
