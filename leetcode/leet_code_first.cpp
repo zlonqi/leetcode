@@ -5022,4 +5022,32 @@ namespace OfferGot {
 		}
 		return ret;
 	}
+	//把数组排成最小的数
+	//Solution I:先全排列，再对结果排序，时间复杂度为N!
+	//Solution II:数学证明，sort排序，时间复杂度为O(N*logN)
+	bool cmp(const int a, const int b) {
+		string strA = "";
+		string strB = "";
+		strA = to_string(a) + to_string(b);
+		strB = to_string(b) + to_string(a);
+		return strA < strB;
+	}
+	//sort排序更像是选择交换排序,如对{3，2，1}，sort()的过程为 3,2；3，1；2，1
+	//第一轮找到了放在最前面的数，第二轮找第二个，以此置之
+	void getLeastPermutation(vector<int>& v) {
+		if (v.empty()) return;
+		sort(v.begin(), v.end(), cmp);
+	}
+	//剑指Offer版DecodeWays（0->'a'),leetcode版是(1->'a')
+	int DecodeWays(int num) {
+		if (num < 0) return 0;
+		string s = to_string(num);
+		vector<int> dp(s.size() - 1, 1);
+		for (int i = 1; i < dp.size(); ++i) {
+			dp[i] = dp[i - 1];
+			if (s[i - 2] != '0')
+				dp[i] += dp[i - 2];
+		}
+		return dp[dp.size()-1];
+	}
 }

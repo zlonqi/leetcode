@@ -303,36 +303,17 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-class Apear1Count {
-public:
-	int count1(int n) {
-		if (n <= 0) return 0;
-		string s;
-		while (n != 0) {
-			s.insert(s.begin(), n % 10 + '0');
-			n /= 10;
-		}
-		return permutateCount(s.c_str());
+int DecodeWays(int num) {
+	if (num < 0) return 0;
+	string s = to_string(num);
+	vector<int> dp(s.size() + 1, 1);
+	for (int i = 1; i < dp.size(); ++i) {
+		dp[i] = dp[i - 1];
+		if (i>1&&(s[i - 2] =='1' || s[i-2]=='2'&&s[i-1]<='6'))
+			dp[i] += dp[i - 2];
 	}
-private:
-	int permutateCount(const char* c) {
-		if (!c||*c == '\0') return 0;
-
-		int fstNum = *c - '0';
-		int len = strlen(c);
-
-		if (len == 1 && fstNum == 0) return 0;
-		if (len == 1 && fstNum >= 1) return 1;
-
-		int fistCounts;
-		if (fstNum > 1) fistCounts = pow(10, len - 1);
-		if(fstNum==1) fistCounts = atoi(c + 1) + 1;
-
-		int otherDigitBeOne = fstNum*(len - 1)*pow(10, len - 2);
-		int recurvCounts = permutateCount(c + 1);
-		return fistCounts + otherDigitBeOne + recurvCounts;
-	}
-};
+	return dp[dp.size() - 1];
+}
 
 int main(int argc, char** argv) {
 	//◊¢ Õ£∫     œ»CTRL+K£¨»ª∫ÛCTRL+C
@@ -464,7 +445,8 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	cout << getNthCharOfNumString(19) << endl;
+	int num = 12258;
+	cout << DecodeWays(num) << endl;
 	system("pause");
 	return 0;
 }
