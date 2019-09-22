@@ -303,17 +303,27 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-int DecodeWays(int num) {
-	if (num < 0) return 0;
-	string s = to_string(num);
-	vector<int> dp(s.size() + 1, 1);
-	for (int i = 1; i < dp.size(); ++i) {
-		dp[i] = dp[i - 1];
-		if (i>1&&(s[i - 2] =='1' || s[i-2]=='2'&&s[i-1]<='6'))
-			dp[i] += dp[i - 2];
+class FstAppearOnceInStream {
+private:
+	vector<int> map{ vector<int>(256,-1) };//C++11后类成员vector的初始化方法
+	int counts = 0;
+public:
+	void insert(char c) {
+		if (map[c] == -1) map[c] = counts;
+		else if (map[c] >= 0) map[c] = -2;
+		counts++;
 	}
-	return dp[dp.size() - 1];
-}
+	char getFstAppearChar() {
+		int min = INT_MAX;
+		int retCh = 0;
+		for (int i = 0; i < 256; ++i)
+			if (map[i] >= 0 && map[i] < min) {
+				retCh = i;
+				min = map[i];
+			}
+		return (char)retCh;
+	}
+};
 
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
@@ -445,8 +455,12 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	int num = 12258;
-	cout << DecodeWays(num) << endl;
+	FstAppearOnceInStream obj;
+	string s = "google";
+	for (auto c : s) {
+		obj.insert(c);
+		cout << obj.getFstAppearChar();
+	}
 	system("pause");
 	return 0;
 }

@@ -5050,4 +5050,89 @@ namespace OfferGot {
 		}
 		return dp[dp.size()-1];
 	}
+	//最长的不重复子字符串
+	//DP
+	int longestUnrepeatSubString(const string& s) {
+		if (s.empty()) return 0;
+		int n = s.size();
+		vector<int> dp(n + 1, 0);
+		unordered_map<char, int> map;
+		int maxLen = 0;
+		for (int i = 1; i <= n; ++i) {
+			int d = INT_MAX;
+			if (map.find(s[i - 1]) != map.end())
+				d = i - map[s[i - 1]];
+			if (d <= dp[i - 1]) dp[i] = d;
+			else dp[i] = dp[i - 1] + 1;
+			if (dp[i] > maxLen) maxLen = dp[i];
+			map[s[i - 1]] = i;
+		}
+		return maxLen;
+	}
+	//求第n个丑数（丑数是由1个1和若干个2，3，5的乘积，且1被认为是最小的丑数）
+	//Solution I:暴力求解寻找，从1开始，知道找到第N个丑数，思路简洁，不过有冗余计算(判断丑数的计算)
+	bool isUglyNum(int num) {
+		if (num <= 0) return false;
+		while (num % 2 == 0) num /= 2;
+		while (num % 3 == 0) num /= 3;
+		while (num % 5 == 0) num /= 5;
+		return num == 1;
+	}
+	int getNthUglyNum(int n) {
+		if (n <= 0) return 0;
+		int counts = 0;
+		int sum = 1;
+		while (counts < n) {
+			if (isUglyNum(sum)) ++counts;
+			++sum;
+		}
+		return sum - 1;
+	}
+	//Solution II:数学上的迭代，下一个丑数为当前丑数中和2，3，5乘积的最小值，为了提高时间效率，得保证数组有序
+	int minNum(int a, int b, int c) {
+		return min(a, min(b, c));
+	}
+	int getNthUglyNumII(int n) {
+		if (n <= 0) return 0;
+		vector<int> v(n+1, 0);
+		v[1] = 1;
+		int* p2 = &v[1];
+		int* p3 = &v[1];
+		int* p5 = &v[1];
+		int counts = 1;
+		while (counts < n) {
+			int nextNum = minNum(*p2 * 2, *p3 * 3, *p5 * 5);
+			v[++counts] = nextNum;
+			while (*p2 * 2 <= nextNum) ++p2;
+			while (*p3 * 3 <= nextNum) ++p3;
+			while (*p5 * 5 <= nextNum) ++p5;
+		}
+		return v[n];
+	}
+	//求第一个不重复的字符
+	//Solution:申请256 整数大小的哈希表，第一次遍历填写表，记录各个字符出现的次数，第二次遍历时查询哈希表，找出最早只出现1次的字符，O(n)的时间复杂度
+	//求字符流中第一个不重复的字符
+	//Solution :由于对字符流做查找是个动态的过程，为了避免每次都做两次遍历(即调用上一题的求解)，同样设置一个256大小的哈希表，只是插入时就对哈希表
+	//动态更新，减少第一次的冗余遍历
+	class FstAppearOnceInStream {
+	private:
+		vector<int> map{ vector<int>(256,-1) };//C++11后类成员vector的初始化方法
+		int counts = 0;
+	public:
+		void insert(char c) {
+			if (map[c] == -1) map[c] = counts;
+			else if (map[c] >= 0) map[c] = -2;
+			counts++;
+		}
+		char getFstAppearChar() {
+			int min = INT_MAX;
+			int retCh = 0;
+			for (int i = 0; i < 256; ++i)
+				if (map[i] >= 0 && map[i] < min) {
+					retCh = i;
+					min = map[i];
+				}
+			return (char)retCh;
+		}
+	};
 }
