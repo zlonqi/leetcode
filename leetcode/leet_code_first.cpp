@@ -5135,4 +5135,43 @@ namespace OfferGot {
 			return (char)retCh;
 		}
 	};
+	//数组中的逆序对
+	//普通的前后比较的暴力求解，时间复杂度为O(N**2)，不足以拿Offer
+	//用归并统计的思想，时间复杂度为O(N*logN)，可以拿Offer
+	class InversePairs {
+	public:
+		int inversePairs(vector<int>& v) {
+			if (v.empty()) return 0;
+			vector<int> copy(v.size(), 0);
+			int counts = inversePairs(v, copy, 0, v.size() - 1);
+			return counts;
+		}
+	private:
+		int inversePairs(vector<int>& v, vector<int>& copy, int start, int end) {
+			if (start == end) {
+				copy[start] = v[start];
+				return 0;
+			}
+			int len = (end - start) / 2;
+			int left = inversePairs(v, copy, start, start + len);
+			int right = inversePairs(v, copy, start + len + 1, end);
+			int i = start + len;
+			int j = end;
+			int pos = end;
+			int counts = 0;
+			while (i >= start&&j >= start + len + 1) {
+				if (v[i] > v[j]) {
+					copy[pos--] = v[i--];
+					counts += j - (start + len);
+				}
+				else
+					copy[pos--] = v[j--];
+			}
+			while (i >= start) copy[pos--] = v[i--];
+			while (j >= start + len + 1) copy[pos--] = v[j--];
+			for (int i = start; i <= end; ++i) v[i] = copy[i];
+
+			return counts + left + right;
+		}
+	};
 }
