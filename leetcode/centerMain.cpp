@@ -303,42 +303,20 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-class InversePairs {
-public:
-	int inversePairs(vector<int>& v) {
-		if (v.empty()) return 0;
-		vector<int> copy(v.size(),0);
-		int counts = inversePairs(v, copy, 0, v.size() - 1);
-		return counts;
+int binarySearch(const vector<int>& v, int left, int right) {
+	while (left <= right) {
+		int mid = (right - left) / 2 + left;
+		if (v[mid] == mid) return binarySearch(v, mid + 1, right);
+		else return binarySearch(v, left, mid - 1);
 	}
-private:
-	int inversePairs(vector<int>& v, vector<int>& copy, int start, int end) {
-		if (start == end) {
-			copy[start] = v[start];
-			return 0;
-		}
-		int len = (end - start) / 2;
-		int left = inversePairs(v, copy, start, start + len);
-		int right = inversePairs(v, copy, start + len + 1, end);
-		int i = start + len;
-		int j = end;
-		int pos = end;
-		int counts = 0;
-		while (i >= start&&j >= start + len + 1) {
-			if (v[i] > v[j]) {
-				copy[pos--] = v[i--];
-				counts += j - (start + len);
-			}
-			else
-				copy[pos--] = v[j--];
-		}
-		while (i >= start) copy[pos--] = v[i--];
-		while (j >= start + len + 1) copy[pos--] = v[j--];
-		for (int i = start; i <= end; ++i) v[i] = copy[i];
-
-		return counts + left + right;
-	}
-};
+	return right + 1;
+}
+int findTheLoseOne(const vector<int>& v) {
+	if (v.empty()) return -1;
+	int left = 0;
+	int right = v.size() - 1;
+	return binarySearch(v, left, right);
+}
 
 int main(int argc, char** argv) {
 	//◊¢ Õ£∫     œ»CTRL+K£¨»ª∫ÛCTRL+C
@@ -470,9 +448,8 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = { 7,5,6,4 };
-	InversePairs obj;
-	cout<<obj.inversePairs(v) << endl;
+	vector<int> v = {0,1,2,4,5 };
+	cout << findTheLoseOne(v) << endl;
 	system("pause");
 	return 0;
 }

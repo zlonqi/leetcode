@@ -5174,4 +5174,67 @@ namespace OfferGot {
 			return counts + left + right;
 		}
 	};
+	//两个链表的首个公共节点
+	//Solution I:暴力比较求解，时间复杂度为O(m*n)
+	//Solution II:用两个辅助栈，时间复杂度为O(m+n)，空间复杂度为O(m+n)
+	//Solution III:快慢指针求解，时间复杂度为O(m+n)，空间复杂度为O(1)
+
+	//知识迁移，举一反三
+	//知道可以用二分法找到排序数组中的元素，那么也可以用二分法在排序的数组中找到某一元素出现的次数，即用二分法找到该元素的左端点和右端点
+	//知道可以用异或法得到数组中仅出现一次的那个元素(其他元素出现两次)，那么也可用异或法求得数组中仅出现一次的那2个元素，将数组分为两块，每一块分布异或求解，没直接结果则递归含有目标元素的那一块
+	int binarySearchLeft(vector<int>& v, int left, int right, int target) {
+		int mid;
+		while (left <= right) {
+			mid = (right - left) / 2 + left;
+			if (v[mid] < target) left = mid + 1;
+			else if ((mid == left) || (mid - 1 >= left && v[mid - 1] != target)) return mid;
+			else return binarySearchLeft(v, left, mid-1, target);
+		}
+		return -1;
+	}
+	int binarySearchRight(vector<int>& v, int left, int right, int target) {
+		int mid;
+		while (left <= right) {
+			mid = (right - left) / 2 + left;
+			if (target < v[mid]) right = mid - 1;
+			else if ((mid == right) || (mid + 1 <= right && v[mid + 1] != target)) return mid;
+			else return binarySearchRight(v, mid + 1, right, target);
+		}
+		return -1;
+	}
+	int countsOfElementInSortedArray(vector<int>& v,int target) {
+		if (v.empty()) return 0;
+		int left = 0;
+		int right = v.size() - 1;
+		int mid;
+		while (left <= right) {
+			mid = (right - left) / 2 + left;
+			if (target < v[mid]) right = mid - 1;
+			else if (v[mid] < target) left = mid + 1;
+			else break;
+		}
+		if (left > right) return 0;
+		int start = mid;
+		if( mid - 1 >= 0 && v[mid - 1] == target)
+			start = binarySearchLeft(v, left, mid - 1, target);
+		int end = mid;
+		if( mid + 1 <= right && v[mid + 1] == target)
+			end = binarySearchRight(v, mid+1, right, target);
+		return end - start + 1;
+	}
+	//找出0-n-1中缺失的数字(数组中有n-1个各不相同的数字，数字的范围在0-n-1之间)
+	int binarySearch(const vector<int>& v, int left, int right) {
+		while (left <= right) {
+			int mid = (right - left) / 2 + left;
+			if (v[mid] == mid) return binarySearch(v, mid + 1, right);
+			else return binarySearch(v, left, mid - 1);
+		}
+		return right + 1;
+	}
+	int findTheLoseOne(const vector<int>& v) {
+		if (v.empty()) return - 1;
+		int left = 0;
+		int right = v.size() - 1;
+		return binarySearch(v, left, right);
+	}
 }
