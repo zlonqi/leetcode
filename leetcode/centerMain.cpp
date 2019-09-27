@@ -303,19 +303,21 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-int binarySearch(const vector<int>& v, int left, int right) {
+int countTarget(const vector<int>& v, int left, int right) {
 	while (left <= right) {
 		int mid = (right - left) / 2 + left;
-		if (v[mid] == mid) return binarySearch(v, mid + 1, right);
-		else return binarySearch(v, left, mid - 1);
+		if (v[mid] < mid) return countTarget(v, mid + 1, right);
+		else if (v[mid] == mid) return 1 + countTarget(v, left, mid - 1) + countTarget(v, mid + 1, right);
+		else return countTarget(v, left, mid - 1) + countTarget(v, mid + 1, right);
+
 	}
-	return right + 1;
+	return 0;
 }
-int findTheLoseOne(const vector<int>& v) {
-	if (v.empty()) return -1;
+int countValueEqualIndex(const vector<int>& v) {
+	if (v.empty()) return 0;
 	int left = 0;
 	int right = v.size() - 1;
-	return binarySearch(v, left, right);
+	return countTarget(v, left, right);
 }
 
 int main(int argc, char** argv) {
@@ -448,8 +450,8 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = {0,1,2,4,5 };
-	cout << findTheLoseOne(v) << endl;
+	vector<int> v = {-3,-1,1,3,5,5,6 };
+	cout << countValueEqualIndex(v) << endl;
 	system("pause");
 	return 0;
 }

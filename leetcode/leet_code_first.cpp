@@ -5237,4 +5237,21 @@ namespace OfferGot {
 		int right = v.size() - 1;
 		return binarySearch(v, left, right);
 	}
+	//计数数值中和元素相等的元素，数组呈单调递增且唯一
+	int countTarget(const vector<int>& v, int left, int right) {
+		while (left <= right) {
+			int mid = (right - left) / 2 + left;
+			if (v[mid] < mid) return countTarget(v, mid + 1, right);
+			else if (v[mid] == mid) return 1 + countTarget(v, left, mid - 1) + countTarget(v, mid + 1, right);
+			else return countTarget(v, left, mid - 1) + countTarget(v, mid + 1, right);
+
+		}
+		return 0;
+	}
+	int countValueEqualIndex(const vector<int>& v) {
+		if (v.empty()) return 0;
+		int left = 0;
+		int right = v.size() - 1;
+		return countTarget(v, left, right);
+	}
 }
