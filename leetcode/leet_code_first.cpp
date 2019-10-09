@@ -5181,14 +5181,14 @@ namespace OfferGot {
 
 	//知识迁移，举一反三
 	//知道可以用二分法找到排序数组中的元素，那么也可以用二分法在排序的数组中找到某一元素出现的次数，即用二分法找到该元素的左端点和右端点
-	//知道可以用异或法得到数组中仅出现一次的那个元素(其他元素出现两次)，那么也可用异或法求得数组中仅出现一次的那2个元素，将数组分为两块，每一块分布异或求解，没直接结果则递归含有目标元素的那一块
+	//知道可以用异或法得到数组中仅出现一次的那个元素(其他元素出现两次)，那么也可用异或法求得数组中仅出现一次的那2个元素，将数组分为两块(非二分)，每一块分布异或求解，没直接结果则递归含有目标元素的那一块
 	int binarySearchLeft(vector<int>& v, int left, int right, int target) {
 		int mid;
 		while (left <= right) {
 			mid = (right - left) / 2 + left;
 			if (v[mid] < target) left = mid + 1;
 			else if ((mid == left) || (mid - 1 >= left && v[mid - 1] != target)) return mid;
-			else return binarySearchLeft(v, left, mid-1, target);
+			else return binarySearchLeft(v, left, mid - 1, target);
 		}
 		return -1;
 	}
@@ -5222,6 +5222,26 @@ namespace OfferGot {
 			end = binarySearchRight(v, mid+1, right, target);
 		return end - start + 1;
 	}
+	//异或法求得数组中仅出现一次的那2个元素
+	vector<int> getTwoSingleNum(vector<int>& v) {
+		if (v.size() <= 1) return vector<int>();
+		int sum = 0;
+		for (auto i : v) sum ^= i;
+		int pos = 1;
+		while (sum) {
+			if (sum & 1 == 1) break;
+			sum >>= 1;
+			pos *= 2;
+		}
+		int target1 = 0;
+		int target2 = 0;
+		for (auto i : v)
+			if ((i&pos) == pos)
+				target1 ^= i;
+			else
+				target2 ^= i;
+		return vector<int>() = { target1,target2 };
+	}
 	//找出0-n-1中缺失的数字(数组中有n-1个各不相同的数字，数字的范围在0-n-1之间)
 	int binarySearch(const vector<int>& v, int left, int right) {
 		while (left <= right) {
@@ -5254,4 +5274,22 @@ namespace OfferGot {
 		int right = v.size() - 1;
 		return countTarget(v, left, right);
 	}
+	//二叉搜索树中第K大的节点
+	//Solution : 中序遍历边技术
+	TreeNode* midTraversal(TreeNode* root, int& count, int& k) {
+		TreeNode* cur = nullptr;
+		if (root) {
+			cur = midTraversal(root->left, count, k);
+			if (cur) return cur;
+			if (k == ++count)return root;
+			cur = midTraversal(root->right, count, k);
+		}
+		return cur;
+	}
+	TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
+		if (root == nullptr || k <= 0) return nullptr;
+		int count = 0;
+		return midTraversal(root, count, k);
+	}
+
 }

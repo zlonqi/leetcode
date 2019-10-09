@@ -303,23 +303,41 @@ ListNode* addListNode(ListNode* head, int val) {
 	return head;
 }
 
-int countTarget(const vector<int>& v, int left, int right) {
-	while (left <= right) {
-		int mid = (right - left) / 2 + left;
-		if (v[mid] < mid) return countTarget(v, mid + 1, right);
-		else if (v[mid] == mid) return 1 + countTarget(v, left, mid - 1) + countTarget(v, mid + 1, right);
-		else return countTarget(v, left, mid - 1) + countTarget(v, mid + 1, right);
-
+TreeNode* midTraversal(TreeNode* root, int& count, int& k) {
+	TreeNode* cur = nullptr;
+	if (root) {
+		cur = midTraversal(root->left, count, k);
+		if (cur) return cur;
+		if(k==++count)return root;
+		cur = midTraversal(root->right, count, k);
 	}
-	return 0;
+	return cur;
 }
-int countValueEqualIndex(const vector<int>& v) {
-	if (v.empty()) return 0;
-	int left = 0;
-	int right = v.size() - 1;
-	return countTarget(v, left, right);
+TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
+	if (root == nullptr || k <= 0) return nullptr;
+	int count = 0;
+	return midTraversal(root,count , k);
 }
 
+vector<int> getTwoSingleNum(vector<int>& v) {
+	if (v.size() <= 1) return vector<int>();
+	int sum = 0;
+	for (auto i : v) sum ^= i;
+	int pos = 1;
+	while (sum) {
+		if (sum & 1 == 1) break;
+		sum >>= 1;
+		pos *= 2;
+	}
+	int target1 = 0;
+	int target2 = 0;
+	for (auto i : v)
+		if ((i&pos) == pos)
+			target1 ^= i;
+		else 
+			target2 ^= i;
+	return vector<int>() = { target1,target2 };
+}
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -450,8 +468,8 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = {-3,-1,1,3,5,5,6 };
-	cout << countValueEqualIndex(v) << endl;
+	vector<int> v = {5,3,2,2,3,6,5,8 };
+	for (auto i : getTwoSingleNum(v)) cout << i << endl;
 	system("pause");
 	return 0;
 }
