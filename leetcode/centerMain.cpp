@@ -319,25 +319,26 @@ TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
 	return midTraversal(root,count , k);
 }
 
-vector<int> getTwoSingleNum(vector<int>& v) {
-	if (v.size() <= 1) return vector<int>();
-	int sum = 0;
-	for (auto i : v) sum ^= i;
-	int pos = 1;
-	while (sum) {
-		if (sum & 1 == 1) break;
-		sum >>= 1;
-		pos *= 2;
+int simulateThreePlus(vector<int>& v) {
+	assert(v.size() <= 3);
+	vector<short int> simv(32, 0);
+	for (auto i : v) {
+		int pos = 0;
+		while (i > 0) {
+			int a = i & 1;
+			if (simv[pos] + a == 3) simv[pos] = 0;
+			else simv[pos] += a;
+			i >>= 1;
+			pos++;
+		}
 	}
-	int target1 = 0;
-	int target2 = 0;
-	for (auto i : v)
-		if ((i&pos) == pos)
-			target1 ^= i;
-		else 
-			target2 ^= i;
-	return vector<int>() = { target1,target2 };
+	int j = 0;
+	int sum = 0;
+	for (auto i : simv)
+		sum += i*pow(2, j++);
+	return sum;
 }
+
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -468,8 +469,8 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = {5,3,2,2,3,6,5,8 };
-	for (auto i : getTwoSingleNum(v)) cout << i << endl;
+	vector<int> v = {5,3,2,2,3,6,5,8,5,3,2,8,8 };
+	cout << simulateThreePlus(v) << endl;
 	system("pause");
 	return 0;
 }
