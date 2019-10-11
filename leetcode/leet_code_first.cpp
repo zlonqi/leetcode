@@ -5313,7 +5313,7 @@ namespace OfferGot {
 		return sum;
 	}
 	//在一个递增的数组中找到和为s的两个数
-	//二分法
+	//二分法，时间复杂度N*logN,有bug，测试用例不能含负数
 	int binSearch(const vector<int>& v, int start, int end, int target) {
 		while (start <= end) {
 			int mid = start + (end - start) / 2;
@@ -5341,6 +5341,18 @@ namespace OfferGot {
 			int pos2 = binSearch1(v, 0, pos1 - 1,target-v[pos1]);
 			if (pos2 < 0) pos1--;
 			else return vector<int>{v[pos1], v[pos2]};
+		}
+		return vector<int>{};
+	}
+	//双部开工法，从两边往中间遍历，时间复杂度O(N)
+	vector<int> findSumDoubledNums(const vector<int>& v, int target) {
+		if (v.size() < 2) return vector<int>{};
+		int i = 0;
+		int j = v.size() - 1;
+		while (i < j) {
+			if (v[i] + v[j] > target) --j;
+			else if (v[i] + v[j] < target) ++i;
+			else return vector<int>{v[i], v[j]};
 		}
 		return vector<int>{};
 	}
