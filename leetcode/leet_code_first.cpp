@@ -5356,4 +5356,108 @@ namespace OfferGot {
 		}
 		return vector<int>{};
 	}
+	//求和为s的连续正整数序列(至少含有2个数)
+	//同样采用类似双部开工法的思路(处理两端)，初始化i=1,j=2,sum(i->j)大于target，则左端点减小i--,反之，sum(i->j)小于等于target，则右端增大j++，j直至增加到(target+1)/2为止
+	void print(int start, int end) {
+		for (int i = start; i <= end; ++i) cout << i << " ";
+		cout << endl;
+	}
+	int getSum(int start, int end) {
+		return (end - start + 1)*(start + end) / 2;
+	}
+	void printContinuousSequenceSum(int target) {
+		if (target <= 2) return;
+		int i = 1;
+		int j = 2;
+		while (j <= (target + 1) / 2) {
+			int sum = getSum(i, j);
+			if (sum== target) {
+				print(i, j);
+				++j;
+			}
+			else if (sum < target) ++j;
+			else ++i;
+		}
+	}
+	//翻转句子，'I am a student.' ==> 'student. a am I'
+	//split+stack<string>
+	void reverseParse(string& s) {
+		if (s.empty()) return;
+		stack<string> stk;
+		for (char* c = &s[0]; *c != '\0';) {
+			string s = "";
+			while (*c == ' ') ++c;
+			while (*c != '\0' && *c != ' ') {
+				s += *c;
+				++c;
+			}
+			stk.push(s);
+		}
+		while (!stk.empty()) {
+			cout << stk.top() << "\t";
+			stk.pop();
+		}
+		cout << endl;
+	}
+	//左旋转字符串,('abcdefg',2) ==> 'cdefgab'
+	//类似split+stack<string>
+	void rotateParse(string& s, int len) {
+		if (s.empty() || len <= 0||len>s.size()) return;
+		if (len == s.size()) {
+			cout << s << endl;
+			return;
+		}
+		string ss = "";
+		for (int i = 0; i < len; ++i) ss += s[i];
+		for (int j = len; j < s.size(); ++j) cout << s[j];
+		cout << ss << endl;
+	}
+	//滑动窗口的最大值，窗口大小为k
+	//此题有点像“用双栈来实现队列”和O(1)复杂度实现栈的max()，所以需要一个辅助数据结构来保存一些迭代的中间值，此处宜用队列
+	void slideWindowMaxValue(vector<int>& v, int k) {
+		if (v.empty() || k > v.size()) return;
+		deque<int> que;
+		for (int i = 0; i < k; ++i) {
+			while (!que.empty() && v[i] >= v[que.back()]) que.pop_back();
+			que.push_back(i);
+		}
+		vector<int> vret = { v[que.front()] };
+		for (int i = k; i < v.size(); ++i) {
+			while (!que.empty() && v[i] >= v[que.back()]) que.pop_back();
+			if (!que.empty() && que.front() <= i - k) que.pop_front();
+			que.push_back(i);
+			vret.push_back(v[que.front()]);
+		}
+		for (auto i : vret) cout << i << "\t";
+	}
+	//实现队列的push_back(),pop_font(),max()，时间复杂度为O(1)
+	template<typename T>
+	class Deque {
+	public:
+		Deque():counts(0){}
+		void push_back(T value) {
+			que1.push_back(node(value, counts));
+			while (!helper.empty() && value >= helper.back().value) helper.pop_back();
+			helper.push_back(node(value, counts));
+			counts++;
+		}
+		void pop_font() {
+			assert(que1.empty());
+			if (que1.front().index == helper.front().index) helper.pop_front();
+			que1.pop_front();
+		}
+		T max() {
+			assert(helper.empty());
+			return helper.front().value;
+		}
+	private:
+		struct node {
+			node(T v, int i):value(v),index(i){}
+			T value;
+			int index;
+		};
+		int counts;
+		deque<node> que1;
+		deque<node> helper;
+	};
 }

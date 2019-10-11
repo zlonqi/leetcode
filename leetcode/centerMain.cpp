@@ -319,48 +319,35 @@ TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
 	return midTraversal(root,count , k);
 }
 
-vector<int> findSumDoubledNums(const vector<int>& v, int target) {
-	if (v.size() < 2) return vector<int>{};
-	int i = 0;
-	int j = v.size() - 1;
-	while (i < j) {
-		if (v[i] + v[j] > target) --j;
-		else if (v[i] + v[j] < target) ++i;
-		else return vector<int>{v[i], v[j]};
+template<typename T>
+class Deque {
+public:
+	Deque() :counts(0) {}
+	void push_back(T value) {
+		que1.push_back(node(value, counts));
+		while (!helper.empty() && value >= helper.back().value) helper.pop_back();
+		helper.push_back(node(value, counts));
+		counts++;
 	}
-	return vector<int>{};
-}
-
-int binSearch(const vector<int>& v, int start, int end, int target) {
-	while (start <= end) {
-		int mid = start + (end - start) / 2;
-		if (v[mid] > target) end = mid - 1;
-		else if (mid + 1 <= end&&v[mid + 1] > target) return mid;
-		else if (mid == end) return mid;
-		else start = mid + 1;
+	void pop_font() {
+		assert(que1.empty());
+		if (que1.front().index == helper.front().index) helper.pop_front();
+		que1.pop_front();
 	}
-	return -1;
-}
-int binSearch1(const vector<int>& v, int start, int end, int target) {
-	while (start <= end) {
-		int mid = start + (end - start) / 2;
-		if (v[mid] > target) end = mid - 1;
-		else if (v[mid] < target) start = mid + 1;
-		else return mid;
+	T max() {
+		assert(helper.empty());
+		return helper.front().value;
 	}
-	return -1;
-}
-vector<int> doubleNums(const vector<int>& v, int target) {
-	if (v.size() < 2) return vector<int>{};
-	int pos1 = binSearch(v, 0, v.size() - 1, target);
-	if (pos1<0) return vector<int>{};
-	while (pos1 > 0) {
-		int pos2 = binSearch1(v, 0, pos1 - 1, target - v[pos1]);
-		if (pos2 < 0) pos1--;
-		else return vector<int>{v[pos1], v[pos2]};
-	}
-	return vector<int>{};
-}
+private:
+	struct node {
+		node(T v, int i) :value(v), index(i) {}
+		T value;
+		int index;
+	};
+	int counts;
+	deque<node> que1;
+	deque<node> helper;
+};
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -491,9 +478,15 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = {0,1,2,4,9,16,17,18,36 };
-	for (auto i : doubleNums(v, 10)) cout << i << "\t";
-	cout << endl;
+	vector<int> v = {2,3,4,2,6,2,5,1 };
+	Deque<int> que;
+	for (auto i : v) {
+		que.push_back(i);
+		cout << que.max() << endl;
+	}
+	for (int i = 0; i < v.size()-1; ++i) {
+		que.pop_font(); cout << que.max() << endl;
+	}
 	system("pause");
 	return 0;
 }
