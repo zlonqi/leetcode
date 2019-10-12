@@ -5460,4 +5460,60 @@ namespace OfferGot {
 		deque<node> que1;
 		deque<node> helper;
 	};
+	//抽象题数学建模
+	//n个骰子的点数有哪些，它们的概率为多少，hard
+	//参考剑指Offer解二的迭代法
+	void printProbability(int n, int hardCore) {//n个骰子，都是hardCore个点，例如hardCore=6是常规的6面体骰子
+		if (n < 1) return;
+		vector<vector<int>> vv = { vector<int>(hardCore*n + 1,0),vector<int>(hardCore*n + 1,0) };//vv[0],vv[1]中保存着每种可能的和出现的情况总数
+		int flag = 0;
+		for (int i = 1; i <= hardCore; ++i) vv[flag][i] = 1;//一个骰子时，点数和为1-6的情况各只有一种
+		for (int k = 2; k <= n; ++k) {
+			for (int i = 0; i < k; ++i) vv[1 - flag][i] = 0;
+			for (int i = k; i <= hardCore*k; ++i) {
+				vv[1 - flag][i] = 0;
+				for (int j = 1; j <= i&&j <= hardCore; ++j)
+					vv[1 - flag][i] += vv[flag][i - j];
+			}
+			flag = 1 - flag;
+		}
+		double sum = pow((double)hardCore, n);
+		for (int i = n; i <= n*hardCore; ++i)
+			cout << i << "\t" << (double)(vv[flag][i] / sum) << endl;
+	}
+	//从一堆牌中随机抽出5张，大小王可以表示任意数，J-11,Q-12,K-13,A-1,判断抽出来的牌面是否为顺子,假设大小王用0来表示
+	bool isContinuous(vector<int>& v) {
+		if (v.size() < 5) return false;
+		vector<short> map(14, 0);
+		for (auto i : v) {
+			map[i]++;
+			if (i!=0 && map[i] > 1) return false;//不能出现非大小王对子
+		}
+		vector<int> res;
+		for (int i = 1; i <= 13; ++i) //把非大小王牌按从小到大顺序抽出来
+			if (map[i] > 0) res.push_back(i);
+		int gap = 0;
+		for (int i = 1; i < res.size(); ++i)//统计需要大小王牌代替的数有多少个
+			gap += res[i] - res[i - 1] - 1;
+		return map[0] >= gap; //大小王牌的数量够填补需求吗
+	}
+	//求最后剩下的数字，若0-n-1这n个数字拍成一圈，从0开始，每次去掉第m个数字，求最后剩下的数字
+	int findLastNumLeaveInCircle(int n, int m) {
+		if (n < 2 || m < 1) return -1;
+		int size = n;
+		vector<bool> v(n, true);
+		int index = -1;
+		while (n > 1) {
+			int counts = 0;
+			while (counts < m) {
+				index++;
+				index %= size;
+				if (v[index]) counts++;
+			}
+			v[index] = false;
+			--n;
+		}
+		for (int i = 0; i < size; ++i)
+			if (v[i]) return i;
+	}
 }

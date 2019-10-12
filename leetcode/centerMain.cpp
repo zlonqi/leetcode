@@ -319,35 +319,24 @@ TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
 	return midTraversal(root,count , k);
 }
 
-template<typename T>
-class Deque {
-public:
-	Deque() :counts(0) {}
-	void push_back(T value) {
-		que1.push_back(node(value, counts));
-		while (!helper.empty() && value >= helper.back().value) helper.pop_back();
-		helper.push_back(node(value, counts));
-		counts++;
+int findLastNumLeaveInCircle(int n, int m) {
+	if (n < 2 || m < 1) return -1;
+	int size = n;
+	vector<bool> v(n, true);
+	int index = -1;
+	while (n > 1) {
+		int counts = 0;
+		while (counts < m) {
+			index++;
+			index %= size;
+			if (v[index]) counts++;
+		}
+		v[index] = false;
+		--n;
 	}
-	void pop_font() {
-		assert(que1.empty());
-		if (que1.front().index == helper.front().index) helper.pop_front();
-		que1.pop_front();
-	}
-	T max() {
-		assert(helper.empty());
-		return helper.front().value;
-	}
-private:
-	struct node {
-		node(T v, int i) :value(v), index(i) {}
-		T value;
-		int index;
-	};
-	int counts;
-	deque<node> que1;
-	deque<node> helper;
-};
+	for (int i = 0; i < size; ++i)
+		if (v[i]) return i;
+}
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -478,15 +467,8 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = {2,3,4,2,6,2,5,1 };
-	Deque<int> que;
-	for (auto i : v) {
-		que.push_back(i);
-		cout << que.max() << endl;
-	}
-	for (int i = 0; i < v.size()-1; ++i) {
-		que.pop_font(); cout << que.max() << endl;
-	}
+	vector<int> v = {2,3,4,6,0,5,1,8,0,10,12};
+	cout << findLastNumLeaveInCircle(10, 3) << endl;
 	system("pause");
 	return 0;
 }
