@@ -319,28 +319,25 @@ TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
 	return midTraversal(root,count , k);
 }
 
-vector<int> buildMultiMatrix(vector<int>& A) {
-	if (A.size() < 2) return vector<int>{};
-	vector<int> B;
-	vector<int> C;
-	vector<int> D;
-	int value = 1;
-	for (int i = 0; i < A.size()-1; ++i) {
-		B.push_back(value);
-		value *= A[i];
+void searchThePath(TreeNode* root, TreeNode* target, vector<TreeNode*>& path, bool& flag) {
+	if (!root) return;
+	path.push_back(root);
+	if (root == target) {
+		flag = true;
+		return;
 	}
-	B.push_back(value);
-
-	value = 1;
-	for (int i = A.size() - 1; i > 0; --i) {
-		C.push_back(value);
-		value *= A[i];
-	}
-	C.push_back(value);
-	int size = B.size();
-	for (int i = 0; i < size; ++i)
-		D.push_back(B[i] * C[size - 1 - i]);
-	return D;
+	if (root->left) searchThePath(root->left, target, path, flag);
+	if (flag) return;
+	if (root->right) searchThePath(root->right, target, path, flag);
+	if (flag) return;
+	path.pop_back();
+}
+vector<TreeNode*> findPath(TreeNode* root, TreeNode* target) {
+	if (root == nullptr || target == nullptr) return vector<TreeNode*>{};
+	vector<TreeNode*> path;
+	bool flag = false;
+	searchThePath(root, target, path, flag);
+	return path;
 }
 int main(int argc, char** argv) {
 	//◊¢ Õ£∫     œ»CTRL+K£¨»ª∫ÛCTRL+C
@@ -472,8 +469,11 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = {1,2,3,4,5};
-	for (auto i : buildMultiMatrix(v)) cout << i << endl;
+	vector<int> v = { 5,3,7,2,4,6,8 };
+	TreeNode* root = nullptr;
+	for (auto i : v) root = buildTree(root, i);
+	TreeNode* target = root->right->left->left;
+	for (auto node : findPath(root, target)) cout << node->value << "\t";
 	system("pause");
 	return 0;
 }

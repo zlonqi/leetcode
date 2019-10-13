@@ -995,11 +995,12 @@ namespace STR {
 			}
 		}
 	};
-	//Implement atoi()，不合规输入返回零
+	//Implement atoi()
+	//不合规输入返回-1，同时可像linux那样增设一个全局变量 ERRNO，出现异常时，设置ERRNO为不同的正值
+	//注意考虑溢出问题
 	//时间复杂度O(n)，空间复杂度O(1)
 	int ImplAtoN(const string& s) {
-		if (s.length() == 0)
-			return 0;
+		if (s.empty()) return -1;
 		int i = 0;
 		int num = 0;
 		int asign = 1;
@@ -1012,13 +1013,12 @@ namespace STR {
 			asign = 1;
 			++i;
 		}
+		if (i == s.size()) return -1;
 		for (; i < s.length(); ++i) {
 			if (s[i] > '9' || s[i] < '0')
-				break;
-			if (num > INT_MAX / 10 || (num == INT_MAX
-				&& (s[i]-'0') > INT_MAX % 10)) {
-				return asign == -1 ? INT_MIN : INT_MAX;	
-			}
+				return -1;
+			if (num > INT_MAX / 10 || (num == INT_MAX && (s[i]-'0') > INT_MAX % 10)) 
+				return -1;	
 			num = num * 10 + s[i]-'0';
 		}
 		return num*asign;
@@ -5561,5 +5561,26 @@ namespace OfferGot {
 		for (int i = 0; i < size; ++i)
 			D.push_back(B[i] * C[size - 1 - i]);
 		return D;
+	}
+	//找出到二叉树某个节点的路径
+	void searchThePath(TreeNode* root, TreeNode* target, vector<TreeNode*>& path,bool& flag) {
+		if (!root) return;
+		path.push_back(root);
+		if (root == target) {
+			flag = true;
+			return;
+		}
+		if (root->left) searchThePath(root->left, target, path,flag);
+		if (flag) return;
+		if (root->right) searchThePath(root->right, target, path,flag);
+		if (flag) return;
+		path.pop_back();
+	}
+	vector<TreeNode*> findPath(TreeNode* root, TreeNode* target) {
+		if (root == nullptr || target == nullptr) return vector<TreeNode*>{};
+		vector<TreeNode*> path;
+		bool flag = false;
+		searchThePath(root, target, path,flag);
+		return path;
 	}
 }
