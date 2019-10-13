@@ -319,23 +319,28 @@ TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
 	return midTraversal(root,count , k);
 }
 
-int findLastNumLeaveInCircle(int n, int m) {
-	if (n < 2 || m < 1) return -1;
-	int size = n;
-	vector<bool> v(n, true);
-	int index = -1;
-	while (n > 1) {
-		int counts = 0;
-		while (counts < m) {
-			index++;
-			index %= size;
-			if (v[index]) counts++;
-		}
-		v[index] = false;
-		--n;
+vector<int> buildMultiMatrix(vector<int>& A) {
+	if (A.size() < 2) return vector<int>{};
+	vector<int> B;
+	vector<int> C;
+	vector<int> D;
+	int value = 1;
+	for (int i = 0; i < A.size()-1; ++i) {
+		B.push_back(value);
+		value *= A[i];
 	}
+	B.push_back(value);
+
+	value = 1;
+	for (int i = A.size() - 1; i > 0; --i) {
+		C.push_back(value);
+		value *= A[i];
+	}
+	C.push_back(value);
+	int size = B.size();
 	for (int i = 0; i < size; ++i)
-		if (v[i]) return i;
+		D.push_back(B[i] * C[size - 1 - i]);
+	return D;
 }
 int main(int argc, char** argv) {
 	//×¢ÊÍ£º     ÏÈCTRL+K£¬È»ºóCTRL+C
@@ -467,8 +472,8 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = {2,3,4,6,0,5,1,8,0,10,12};
-	cout << findLastNumLeaveInCircle(10, 3) << endl;
+	vector<int> v = {1,2,3,4,5};
+	for (auto i : buildMultiMatrix(v)) cout << i << endl;
 	system("pause");
 	return 0;
 }

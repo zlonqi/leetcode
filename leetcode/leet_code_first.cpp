@@ -5498,6 +5498,8 @@ namespace OfferGot {
 		return map[0] >= gap; //大小王牌的数量够填补需求吗
 	}
 	//求最后剩下的数字，若0-n-1这n个数字拍成一圈，从0开始，每次去掉第m个数字，求最后剩下的数字
+	//Solution I:模拟循环数组
+	//Solution II:数学规律解法
 	int findLastNumLeaveInCircle(int n, int m) {
 		if (n < 2 || m < 1) return -1;
 		int size = n;
@@ -5515,5 +5517,49 @@ namespace OfferGot {
 		}
 		for (int i = 0; i < size; ++i)
 			if (v[i]) return i;
+	}
+	//不用乘法、循环、条件控制计算1+2+...+n，这里不考虑大数相加
+	//不能用循环，暗示了可以用递归，再利用短路求值替代if,while等条件判断
+	int sumN(int n) {
+		int sum = n;
+		sum && (sum += sumN(n - 1));
+		return sum;
+	}
+	//不用+、-、*、/计算俩数的和
+	//位运算
+	int plusTwoNums(int i, int j) {
+		int a, b;
+		do {
+			a = i^j;
+			b = (i&j) << 1;
+			i = a;
+			j = b;
+		} while (j != 0);
+		return i;
+	}
+	//不用除法构建乘积数组，题目描述见剑指offer
+	//构造两个辅助数组，存放左右两部分的乘积，时间复杂度为O(n)
+	vector<int> buildMultiMatrix(vector<int>& A) {
+		if (A.size() < 2) return vector<int>{};
+		vector<int> B;
+		vector<int> C;
+		vector<int> D;
+		int value = 1;
+		for (int i = 0; i < A.size() - 1; ++i) {
+			B.push_back(value);
+			value *= A[i];
+		}
+		B.push_back(value);
+
+		value = 1;
+		for (int i = A.size() - 1; i > 0; --i) {
+			C.push_back(value);
+			value *= A[i];
+		}
+		C.push_back(value);
+		int size = B.size();
+		for (int i = 0; i < size; ++i)
+			D.push_back(B[i] * C[size - 1 - i]);
+		return D;
 	}
 }
