@@ -5584,3 +5584,155 @@ namespace OfferGot {
 		return path;
 	}
 }
+namespace BitCalculation {
+	//判断两数符号是否相同
+	bool isSameSign(int x, int y) {
+		return x^y >= 0;
+	}
+	//n&(n-1)的妙用
+	//1.数的二进制中有多少个1
+	int countsBinOne(int n) {
+		int counts = 0;
+		while (n > 0) {
+			counts++;
+			n = n&(n - 1);
+		}
+		return counts;
+	}
+	//2.求一个数是不是4的幂
+	bool isFactorialOfFour(int n) {
+		return n > 0 && (n&(n - 1) == 0) && ((n - 1) % 3 == 0);
+	}
+	//判断一个数是不是2的幂
+	bool isFactorialOfTwo(int n) {
+		return n > 0 && n&(n - 1) == 0;
+	}
+	//对2的n次方取余
+	int quyu(int m, int n) {
+		return m&(n - 1);
+	}
+	//计算N+1
+	// 位运算符~用来取反，另一个位运算符-用来取反加一
+	// N+1 <==> -~n
+
+	//计算N-1
+	// N-1 <==> ~-n
+
+	//取相反数 ~n+1，即-n
+
+	//当n>0时候返回1，n<0时返回-1，n=0时返回0
+	int special(int n) {
+		return !!n - (((unsigned)n >> 31) << 1);
+	}
+}
+namespace OptimalSolution {
+	//献给左程云
+	//仅用递归逆序一个栈
+	int getBottomOne(stack<int>& stk) {
+		int top = stk.top();
+		stk.pop();
+		if (stk.empty()) return top;
+		int i = getBottomOne(stk);
+		stk.push(top);
+		return i;
+	}
+	void reverseStack(stack<int>& stk) {
+		if (stk.empty()) return;
+		int i = getBottomOne(stk);
+		reverseStack(stk);
+		stk.push(i);
+	}
+	//猫狗队列
+	//实现一个队列，能够把猫狗入队和出队
+	class Pet {
+	public:
+		Pet(string type):petType(type){}
+		string getPetType() {
+			return petType;
+		}
+	private:
+		string petType;
+	};
+	class Cat :public Pet {
+	public:
+		Cat():Pet("cat"){}
+	};
+	class Dog :Pet {
+	public:
+		Dog():Pet("dog"){}
+	};
+	class CatDogDeque {
+	public:
+		CatDogDeque():exitCat(false),exitDog(false){}
+		void add(Pet pet) {
+			que.push(pet);
+			if (pet.getPetType() == "cat") exitCat = true;
+			else exitDog = true;
+		}
+		void pollAll() {
+			while (!que.empty()) {
+				cout << que.front().getPetType() << "\t";
+				que.pop();
+			}
+			cout << endl;
+			exitCat = false;
+			exitDog = false;
+		}
+		void pollCat() {
+			queue<Pet> helper;
+			while (!que.empty()) {
+				Pet node = que.front();
+				if (node.getPetType() == "cat") cout << "cat" << "\t";
+				else helper.push(node);
+				que.pop();
+			}
+			que = helper;
+			exitCat = false;
+		}
+		void pollDog() {
+			queue<Pet> helper;
+			while (!que.empty()) {
+				Pet node = que.front();
+				if (node.getPetType() == "dog") cout << "dog" << "\t";
+				else helper.push(node);
+				que.pop();
+			}
+			que = helper;
+			exitDog = false;
+		}
+		bool isEmpty() {
+			return exitCat && exitDog;
+		}
+		bool isDogEmpty() {
+			return exitDog;
+		}
+		bool isCatEmpty() {
+			return exitCat;
+		}
+	private:
+		queue<Pet> que;
+		bool exitCat;
+		bool exitDog;
+	};
+	//用一个栈排序另一个栈
+	void stackSortStack(stack<int>& stk) {
+		if (stk.empty()) return;
+		stack<int> helper;
+		while (!stk.empty()) {
+			int top = stk.top();
+			stk.pop();
+			if (helper.empty()) helper.push(top);
+			else {
+				while (!helper.empty() && top < helper.top()) {
+					stk.push(helper.top());
+					helper.pop();
+				}
+				helper.push(top);
+			}
+		}
+		while (!helper.empty()) {
+			cout << helper.top();
+			helper.pop();
+		}
+	}
+}

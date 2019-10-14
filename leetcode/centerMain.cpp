@@ -319,25 +319,25 @@ TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
 	return midTraversal(root,count , k);
 }
 
-void searchThePath(TreeNode* root, TreeNode* target, vector<TreeNode*>& path, bool& flag) {
-	if (!root) return;
-	path.push_back(root);
-	if (root == target) {
-		flag = true;
-		return;
+void stackSortStack(stack<int>& stk) {
+	if (stk.empty()) return;
+	stack<int> helper;
+	while (!stk.empty()) {
+		int top = stk.top();
+		stk.pop();
+		if (helper.empty()) helper.push(top);
+		else {
+			while (!helper.empty()&&top < helper.top()) {
+				stk.push(helper.top());
+				helper.pop();
+			}
+			helper.push(top);
+		}
 	}
-	if (root->left) searchThePath(root->left, target, path, flag);
-	if (flag) return;
-	if (root->right) searchThePath(root->right, target, path, flag);
-	if (flag) return;
-	path.pop_back();
-}
-vector<TreeNode*> findPath(TreeNode* root, TreeNode* target) {
-	if (root == nullptr || target == nullptr) return vector<TreeNode*>{};
-	vector<TreeNode*> path;
-	bool flag = false;
-	searchThePath(root, target, path, flag);
-	return path;
+	while (!helper.empty()) {
+		cout << helper.top();
+		helper.pop();
+	}
 }
 int main(int argc, char** argv) {
 	//×¢ÊÍ£º     ÏÈCTRL+K£¬È»ºóCTRL+C
@@ -469,11 +469,10 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = { 5,3,7,2,4,6,8 };
-	TreeNode* root = nullptr;
-	for (auto i : v) root = buildTree(root, i);
-	TreeNode* target = root->right->left->left;
-	for (auto node : findPath(root, target)) cout << node->value << "\t";
+	vector<int> v = { 3,1,2,4,2,5,6 };
+	stack<int> stk;
+	for (auto i : v) stk.push(i);
+	stackSortStack(stk);
 	system("pause");
 	return 0;
 }
