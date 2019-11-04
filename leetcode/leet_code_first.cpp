@@ -5735,4 +5735,59 @@ namespace OptimalSolution {
 			helper.pop();
 		}
 	}
+	//汉诺塔递归解法
+	void hanNuoTa(int n,char a,char b,char c) {
+		if (n == 1) cout << n << "\t" << a << "----->" << c << endl;
+		else {
+			hanNuoTa(n - 1, a, c, b);
+			cout << n << "\t" << a << "----->" << c << endl;
+			hanNuoTa(n - 1, b, a, c);
+		}
+	}
+	struct TreeNode{
+		TreeNode(int v):val(v){}
+		int val;
+		TreeNode* left = nullptr;
+		TreeNode* right = nullptr;
+	};
+	//建堆法，建堆的时间复杂度为N*lgN,建树的时间复杂度为N*logN,总的时间复杂度为N*lgN
+	TreeNode* maxTree(TreeNode* root, int value) {
+		if (root == nullptr) {
+			root = new TreeNode(value);
+			return root;
+		}
+		queue<TreeNode*> que;
+		que.push(root);
+		while (!que.empty()) {
+			TreeNode* cur = que.front();
+			que.pop();
+			if (!cur->left) {
+				cur->left = maxTree(cur->left, value);
+				break;
+			}
+			if (!cur->right) {
+				cur->right = maxTree(cur->right, value);
+				break;
+			}
+			que.push(cur->left);
+			que.push(cur->right);
+		}
+		return root;
+	}
+	void buildHeap(vector<int>& v) {
+		for (int i = 0; i < v.size(); ++i) {
+			int index = i;
+			while (index > 0 && v[(index - 1) / 2] <= v[index]) {
+				swap(v[(index - 1) / 2], v[index]);
+				index = (index - 1) / 2;
+			}
+		}
+	}
+	TreeNode* buildMaxTree(vector<int>& v, TreeNode* root) {
+		if (v.empty()) return nullptr;
+		buildHeap(v);
+		for (auto i : v) root = maxTree(root, i);
+		return root;
+	}
+	//
 }

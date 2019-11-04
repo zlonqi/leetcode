@@ -212,6 +212,30 @@ void printTree(TreeNode* root) {
 		printTree(root->right);
 	}
 }
+vector<vector<int>> LevelOrderTraversal(TreeNode* root) {
+	vector<vector<int>> ret;
+	if (root == nullptr)
+		return ret;
+	queue<TreeNode*> current, next;
+	current.push(root);
+	while (!current.empty())
+	{
+		vector<int> level;
+		while (!current.empty())
+		{
+			TreeNode* tmp = current.front();
+			current.pop();
+			level.push_back(tmp->value);
+			if (tmp->left)
+				next.push(tmp->left);
+			if (tmp->right)
+				next.push(tmp->right);
+		}
+		ret.push_back(level);
+		swap(current, next);
+	}
+	return ret;
+}
 template<typename T>
 class Qstack {
 public:
@@ -319,25 +343,43 @@ TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
 	return midTraversal(root,count , k);
 }
 
-void stackSortStack(stack<int>& stk) {
-	if (stk.empty()) return;
-	stack<int> helper;
-	while (!stk.empty()) {
-		int top = stk.top();
-		stk.pop();
-		if (helper.empty()) helper.push(top);
-		else {
-			while (!helper.empty()&&top < helper.top()) {
-				stk.push(helper.top());
-				helper.pop();
-			}
-			helper.push(top);
+TreeNode* maxTree(TreeNode* root, int value) {
+	if (root == nullptr) {
+		root = new TreeNode(value);
+		return root;
+	}
+	queue<TreeNode*> que;
+	que.push(root);
+	while (!que.empty()) {
+		TreeNode* cur = que.front();
+		que.pop();
+		if (!cur->left) {
+			cur->left = maxTree(cur->left, value);
+			break;
+		}
+		if (!cur->right) {
+			cur->right = maxTree(cur->right, value);
+			break;
+		}
+		que.push(cur->left);
+		que.push(cur->right);
+	}
+	return root;
+}
+void buildHeap(vector<int>& v) {
+	for (int i = 0; i < v.size(); ++i) {
+		int index = i;
+		while (index > 0 && v[(index - 1) / 2] <= v[index]) {
+			swap(v[(index - 1) / 2], v[index]);
+			index = (index - 1) / 2;
 		}
 	}
-	while (!helper.empty()) {
-		cout << helper.top();
-		helper.pop();
-	}
+}
+TreeNode* buildMaxTree(vector<int>& v, TreeNode* root) {
+	if (v.empty()) return nullptr;
+	buildHeap(v);
+	for (auto i : v) root = maxTree(root, i);
+	return root;
 }
 int main(int argc, char** argv) {
 	//◊¢ Õ£∫     œ»CTRL+K£¨»ª∫ÛCTRL+C
@@ -469,10 +511,14 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = { 3,1,2,4,2,5,6 };
-	stack<int> stk;
-	for (auto i : v) stk.push(i);
-	stackSortStack(stk);
+	vector<int> v = { 3,4,5,1,2 };
+	TreeNode* root = nullptr;
+	root=buildMaxTree(v,root);
+	for (auto v : LevelOrderTraversal(root)) {
+		for (auto i : v) cout << i;
+		cout << endl;
+	}
+
 	system("pause");
 	return 0;
 }
