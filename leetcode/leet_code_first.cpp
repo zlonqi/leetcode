@@ -5498,8 +5498,8 @@ namespace OfferGot {
 		return map[0] >= gap; //大小王牌的数量够填补需求吗
 	}
 	//求最后剩下的数字，若0-n-1这n个数字拍成一圈，从0开始，每次去掉第m个数字，求最后剩下的数字
-	//Solution I:模拟循环数组
-	//Solution II:数学规律解法
+	//Solution I:模拟循环数组,时间复杂度O(m*n)
+	//Solution II:数学规律解法，时间复杂度O(n)
 	int findLastNumLeaveInCircle(int n, int m) {
 		if (n < 2 || m < 1) return -1;
 		int size = n;
@@ -5628,166 +5628,406 @@ namespace BitCalculation {
 namespace OptimalSolution {
 	//献给左程云
 	//仅用递归逆序一个栈
-	int getBottomOne(stack<int>& stk) {
-		int top = stk.top();
-		stk.pop();
-		if (stk.empty()) return top;
-		int i = getBottomOne(stk);
-		stk.push(top);
-		return i;
-	}
-	void reverseStack(stack<int>& stk) {
-		if (stk.empty()) return;
-		int i = getBottomOne(stk);
-		reverseStack(stk);
-		stk.push(i);
-	}
-	//猫狗队列
-	//实现一个队列，能够把猫狗入队和出队
-	class Pet {
-	public:
-		Pet(string type):petType(type){}
-		string getPetType() {
-			return petType;
-		}
-	private:
-		string petType;
-	};
-	class Cat :public Pet {
-	public:
-		Cat():Pet("cat"){}
-	};
-	class Dog :Pet {
-	public:
-		Dog():Pet("dog"){}
-	};
-	class CatDogDeque {
-	public:
-		CatDogDeque():exitCat(false),exitDog(false){}
-		void add(Pet pet) {
-			que.push(pet);
-			if (pet.getPetType() == "cat") exitCat = true;
-			else exitDog = true;
-		}
-		void pollAll() {
-			while (!que.empty()) {
-				cout << que.front().getPetType() << "\t";
-				que.pop();
-			}
-			cout << endl;
-			exitCat = false;
-			exitDog = false;
-		}
-		void pollCat() {
-			queue<Pet> helper;
-			while (!que.empty()) {
-				Pet node = que.front();
-				if (node.getPetType() == "cat") cout << "cat" << "\t";
-				else helper.push(node);
-				que.pop();
-			}
-			que = helper;
-			exitCat = false;
-		}
-		void pollDog() {
-			queue<Pet> helper;
-			while (!que.empty()) {
-				Pet node = que.front();
-				if (node.getPetType() == "dog") cout << "dog" << "\t";
-				else helper.push(node);
-				que.pop();
-			}
-			que = helper;
-			exitDog = false;
-		}
-		bool isEmpty() {
-			return exitCat && exitDog;
-		}
-		bool isDogEmpty() {
-			return exitDog;
-		}
-		bool isCatEmpty() {
-			return exitCat;
-		}
-	private:
-		queue<Pet> que;
-		bool exitCat;
-		bool exitDog;
-	};
-	//用一个栈排序另一个栈
-	void stackSortStack(stack<int>& stk) {
-		if (stk.empty()) return;
-		stack<int> helper;
-		while (!stk.empty()) {
+	namespace StackAndQueue {
+		int getBottomOne(stack<int>& stk) {
 			int top = stk.top();
 			stk.pop();
-			if (helper.empty()) helper.push(top);
-			else {
-				while (!helper.empty() && top < helper.top()) {
-					stk.push(helper.top());
-					helper.pop();
+			if (stk.empty()) return top;
+			int i = getBottomOne(stk);
+			stk.push(top);
+			return i;
+		}
+		void reverseStack(stack<int>& stk) {
+			if (stk.empty()) return;
+			int i = getBottomOne(stk);
+			reverseStack(stk);
+			stk.push(i);
+		}
+		//猫狗队列
+		//实现一个队列，能够把猫狗入队和出队
+		class Pet {
+		public:
+			Pet(string type) :petType(type) {}
+			string getPetType() {
+				return petType;
+			}
+		private:
+			string petType;
+		};
+		class Cat :public Pet {
+		public:
+			Cat() :Pet("cat") {}
+		};
+		class Dog :Pet {
+		public:
+			Dog() :Pet("dog") {}
+		};
+		class CatDogDeque {
+		public:
+			CatDogDeque() :exitCat(false), exitDog(false) {}
+			void add(Pet pet) {
+				que.push(pet);
+				if (pet.getPetType() == "cat") exitCat = true;
+				else exitDog = true;
+			}
+			void pollAll() {
+				while (!que.empty()) {
+					cout << que.front().getPetType() << "\t";
+					que.pop();
 				}
-				helper.push(top);
+				cout << endl;
+				exitCat = false;
+				exitDog = false;
+			}
+			void pollCat() {
+				queue<Pet> helper;
+				while (!que.empty()) {
+					Pet node = que.front();
+					if (node.getPetType() == "cat") cout << "cat" << "\t";
+					else helper.push(node);
+					que.pop();
+				}
+				que = helper;
+				exitCat = false;
+			}
+			void pollDog() {
+				queue<Pet> helper;
+				while (!que.empty()) {
+					Pet node = que.front();
+					if (node.getPetType() == "dog") cout << "dog" << "\t";
+					else helper.push(node);
+					que.pop();
+				}
+				que = helper;
+				exitDog = false;
+			}
+			bool isEmpty() {
+				return exitCat && exitDog;
+			}
+			bool isDogEmpty() {
+				return exitDog;
+			}
+			bool isCatEmpty() {
+				return exitCat;
+			}
+		private:
+			queue<Pet> que;
+			bool exitCat;
+			bool exitDog;
+		};
+		//用一个栈排序另一个栈
+		void stackSortStack(stack<int>& stk) {
+			if (stk.empty()) return;
+			stack<int> helper;
+			while (!stk.empty()) {
+				int top = stk.top();
+				stk.pop();
+				if (helper.empty()) helper.push(top);
+				else {
+					while (!helper.empty() && top < helper.top()) {
+						stk.push(helper.top());
+						helper.pop();
+					}
+					helper.push(top);
+				}
+			}
+			while (!helper.empty()) {
+				cout << helper.top();
+				helper.pop();
 			}
 		}
-		while (!helper.empty()) {
-			cout << helper.top();
-			helper.pop();
+		//汉诺塔递归解法
+		void hanNuoTa(int n, char a, char b, char c) {
+			if (n == 1) cout << n << "\t" << a << "----->" << c << endl;
+			else {
+				hanNuoTa(n - 1, a, c, b);
+				cout << n << "\t" << a << "----->" << c << endl;
+				hanNuoTa(n - 1, b, a, c);
+			}
 		}
-	}
-	//汉诺塔递归解法
-	void hanNuoTa(int n,char a,char b,char c) {
-		if (n == 1) cout << n << "\t" << a << "----->" << c << endl;
-		else {
-			hanNuoTa(n - 1, a, c, b);
-			cout << n << "\t" << a << "----->" << c << endl;
-			hanNuoTa(n - 1, b, a, c);
-		}
-	}
-	struct TreeNode{
-		TreeNode(int v):val(v){}
-		int val;
-		TreeNode* left = nullptr;
-		TreeNode* right = nullptr;
-	};
-	//建堆法，建堆的时间复杂度为N*lgN,建树的时间复杂度为N*logN,总的时间复杂度为N*lgN
-	TreeNode* maxTree(TreeNode* root, int value) {
-		if (root == nullptr) {
-			root = new TreeNode(value);
+		struct TreeNode {
+			TreeNode(int v) :val(v) {}
+			int val;
+			TreeNode* left = nullptr;
+			TreeNode* right = nullptr;
+		};
+		//建堆法，建堆的时间复杂度为N*lgN,建树的时间复杂度为N*logN,总的时间复杂度为N*lgN
+		TreeNode* maxTree(TreeNode* root, int value) {
+			if (root == nullptr) {
+				root = new TreeNode(value);
+				return root;
+			}
+			queue<TreeNode*> que;
+			que.push(root);
+			while (!que.empty()) {
+				TreeNode* cur = que.front();
+				que.pop();
+				if (!cur->left) {
+					cur->left = maxTree(cur->left, value);
+					break;
+				}
+				if (!cur->right) {
+					cur->right = maxTree(cur->right, value);
+					break;
+				}
+				que.push(cur->left);
+				que.push(cur->right);
+			}
 			return root;
 		}
-		queue<TreeNode*> que;
-		que.push(root);
-		while (!que.empty()) {
-			TreeNode* cur = que.front();
-			que.pop();
-			if (!cur->left) {
-				cur->left = maxTree(cur->left, value);
-				break;
-			}
-			if (!cur->right) {
-				cur->right = maxTree(cur->right, value);
-				break;
-			}
-			que.push(cur->left);
-			que.push(cur->right);
-		}
-		return root;
-	}
-	void buildHeap(vector<int>& v) {
-		for (int i = 0; i < v.size(); ++i) {
-			int index = i;
-			while (index > 0 && v[(index - 1) / 2] <= v[index]) {
-				swap(v[(index - 1) / 2], v[index]);
-				index = (index - 1) / 2;
+		void buildHeap(vector<int>& v) {
+			for (int i = 0; i < v.size(); ++i) {
+				int index = i;
+				while (index > 0 && v[(index - 1) / 2] <= v[index]) {
+					swap(v[(index - 1) / 2], v[index]);
+					index = (index - 1) / 2;
+				}
 			}
 		}
+		TreeNode* buildMaxTree(vector<int>& v, TreeNode* root) {
+			if (v.empty()) return nullptr;
+			buildHeap(v);
+			for (auto i : v) root = maxTree(root, i);
+			return root;
+		}
+		//zuo solution
+		//一个元素左边比他大和右边比他大的元素中的最小值是其父节点，如果没有则该元素就是根节点
+		//时间复杂度O(n),额外的空间复杂度O(n)
+		void buildT(TreeNode* root, int nodeV, unordered_map<int, vector<int>>& map) {
+			auto pair = map[nodeV];
+			if (pair.empty()) return;
+			root->left = new TreeNode(pair[0]);
+			buildT(root->left, pair[0], map);
+			if (pair.size() > 1) {
+				root->right = new TreeNode(pair[1]);
+				buildT(root->right, pair[1], map);
+			}
+			map.erase(nodeV);
+		}
+		TreeNode* maxTree(vector<int>& v) {
+			int n = v.size();
+			vector<int> left(n);
+			vector<int> right(n);
+			left.clear(); right.clear();
+			stack<int> stk;
+			for (auto i : v) {
+				if (stk.empty()) left.push_back(INT_MAX);
+				else {
+					while (!stk.empty() && i >= stk.top()) stk.pop();
+					if (stk.empty())
+						left.push_back(INT_MAX);
+					else
+						left.push_back(stk.top());
+				}
+				stk.push(i);
+			}
+			while (!stk.empty()) stk.pop();
+			for (int i = v.size() - 1; i >= 0; --i) {
+				if (stk.empty()) right.insert(right.begin(), INT_MAX);
+				else {
+					while (!stk.empty() && v[i] >= stk.top()) stk.pop();
+					if (stk.empty())
+						right.insert(right.begin(), INT_MAX);
+					else
+						right.insert(right.begin(), stk.top());
+				}
+				stk.push(v[i]);
+			}
+			unordered_map<int, vector<int>> map;
+			TreeNode* root = nullptr;
+			int nodeV;
+			for (int k = 0; k < n; ++k) {
+				int minV = min(left[k], right[k]);
+				map[minV].push_back(v[k]);
+			}
+
+			nodeV = map[INT_MAX][0];
+			root = new TreeNode(nodeV);
+			map.erase(INT_MAX);
+			buildT(root, nodeV, map);
+			return root;
+		}
+		//最大子矩阵的大小
+		//zuo Solution:逐层迭代计算直方图中最大的矩阵，时间复杂度为O(N*M)
+		class MaxSubMatrix {
+		public:
+			int maxSizeOfSubMatrix(vector<vector<int>>& v) {
+				if (v.empty() || v[0].empty()) return 0;
+				int n = v.size();
+				int m = v[0].size();
+				vector<int> height(v[0]);
+				int maxSize = 0;
+				for (int i = 0; i < n; ++i) {
+					updateHeight(v, height, i, m);
+					maxSize = max(maxSize, getMaxMatrixFromHistogram(height));
+				}
+				return maxSize;
+			}
+		private:
+			void updateHeight(vector<vector<int>>& v, vector<int>& height, int i, int m) {
+				if (i == 0) return;
+				for (int j = 0; j < m; ++j) {
+					if (v[i][j] == 0) height[j] = 0;
+					else
+						height[j] = height[j] + 1;
+				}
+			}
+			int getMaxMatrixFromHistogram(vector<int>& height) {
+				//借助递增栈的做法
+				height.push_back(0);
+				int maxMatrix = 0;
+				stack<int> stk;
+				for (int i = 0; i < height.size();) {
+					if (stk.empty() || height[i] > height[stk.top()])
+						stk.push(i++);
+					else {
+						int tmp = stk.top();
+						stk.pop();
+						maxMatrix = max(maxMatrix, height[tmp] * (stk.empty() ? i : i - stk.top() - 1));
+					}
+				}
+				height.pop_back();
+				return maxMatrix;
+			}
+		};
+		//最大值减去最小值小于等于num的子数组的个数
+		//zuo Solution:构造两个双端队列qmax,qmin，分别以v[0],v[1],...v[size-1]作为子数组的左端点向右延伸到子数组不满足max-min<=num为止,累加此时的合格子数组，然后左端点右移一格，继续
+		int getSpecificSubArrayAmount(vector<int>& v,int target) {
+			if (v.empty()) return 0;
+			int counts = 0;
+			int i = 0;
+			int j = 0;
+			deque<int> qMax;
+			deque<int> qMin;
+			while (i < v.size()) {
+				while (j < v.size()) {
+					while (!qMax.empty() && v[j] >= v[qMax.back()]) qMax.pop_back();
+					qMax.push_back(j);
+					while (!qMin.empty() && v[j] <= v[qMin.back()]) qMin.pop_back();
+					qMin.push_back(j);
+					if (qMax.front() - qMin.front() > target) break;
+					j++;
+				}
+				if (qMax.front() == i) qMax.pop_front();
+				if (qMin.front() == i) qMin.pop_front();
+				counts += j - i;
+				i++;
+			}
+			return counts;
+		}
 	}
-	TreeNode* buildMaxTree(vector<int>& v, TreeNode* root) {
-		if (v.empty()) return nullptr;
-		buildHeap(v);
-		for (auto i : v) root = maxTree(root, i);
-		return root;
+	namespace LinkList {
+		struct ListNode {
+			int val;
+			ListNode* next = nullptr;
+			ListNode(int v):val(v){}
+		};
+		//打印有序链表的公共部分
+		//因为是有序链表，不相等则指针下移，相等则打印
+		void printCommanPartion(const ListNode* head1, const ListNode* head2) {
+			if (head1 == nullptr || head2 == nullptr) return;
+			while (head1 != nullptr && head2 != nullptr) {
+				if (head1->val < head2->val) head1 = head1->next;
+				else if (head1->val > head2->val) head2 = head2->next;
+				else {
+					cout << head1->val << "\t";
+					head1 = head1->next;
+					head2 = head2->next;
+				}
+			}
+		}
+		//删除第a/b处节点
+		//a/b约定为向上取整
+		ListNode* deleteABNode(ListNode* head, int a, int b) {
+			if (head == nullptr || a > b) return head;
+			int size = 0;
+			ListNode* cur = head;
+			while (cur) {
+				++size;
+				cur = cur->next;
+			}
+			//向上取整确定删除第几个节点
+			int pos = a*size%b == 0 ? a*size / b : (a*size / b + 1);
+			//删除一个节点，只要找到这个节点的前一个节点即可
+			cur = head;
+			if (pos == 1) {//删除头节点
+				head = head->next;
+				delete cur;
+				return head;
+			}
+			int counts = 1;
+			while (counts < pos-1) {//找到这个节点的前一个节点
+				counts++;
+				cur = cur->next;
+			}
+			ListNode* target = cur->next;
+			cur = target->next;
+			delete target;
+			return head;
+		}
+		//反转单链表
+		ListNode* reverseForwardList(ListNode* head) {
+			if (head == nullptr || head->next == nullptr) return;
+			ListNode* pre = nullptr;
+			ListNode* cur = head;
+			ListNode* next = nullptr;
+			while (cur) {
+				next = cur->next;
+				cur->next = pre;
+				pre = cur;
+				cur = next;
+			}
+			return pre;
+		}
+		//反转双向链表
+		struct DListNode {
+			int val;
+			DListNode* pre = nullptr;
+			DListNode* next = nullptr;
+			DListNode(int v):val(v){}
+		};
+		DListNode* reverseDList(DListNode* head) {
+			if (head == nullptr || head->next == nullptr) return head;
+			DListNode* pre = nullptr;
+			DListNode* next = nullptr;
+			DListNode* cur = head;
+			while (cur) {
+				next = cur->next;
+				cur->next = pre;
+				cur->pre = next;
+				pre = cur;
+				cur = next;
+			}
+			return pre;
+		}
+		//翻转从第m个到第n个的节点,约定m,n均小于List.size()
+		ListNode* reverseApartionNodes(ListNode* head, int m, int n) {
+			if (head == nullptr || head->next == nullptr || m >= n)  return head;
+			ListNode dummy(-1);
+			dummy.next = head;
+			ListNode* pre = &dummy;
+			for (int i = 0; i < m-1; ++i)//定位到第m个节点的前驱结点
+				pre = pre->next;
+			ListNode* head2 = pre;
+			ListNode* next = nullptr;
+			ListNode* cur = head2->next;
+			for (int i = m; i < n; ++i) {
+				next = cur->next;
+				cur->next = next->next;
+				next->next = head2->next;
+				head2->next = next;
+			}
+			return dummy.next;
+		}
+		//O(N)解法解决约瑟夫问题
+		//递归公式    0, i=1;
+		//    f(i,m)= [f(i-1,m)+m]%i;
+		int yueSeFu(int n, int m) {
+			if (n < 1 || m < 1) return -1;
+			int last = 0;//编号为0的那人,若从1开始编号，则last初始化为1
+			for (int i = 2; i <= n; ++i)
+				last = (last + m) % i;
+			return last;
+		}
 	}
-	//
 }

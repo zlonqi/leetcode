@@ -343,44 +343,30 @@ TreeNode* getKthNodeOfBinTree(TreeNode* root, int k) {
 	return midTraversal(root,count , k);
 }
 
-TreeNode* maxTree(TreeNode* root, int value) {
-	if (root == nullptr) {
-		root = new TreeNode(value);
-		return root;
-	}
-	queue<TreeNode*> que;
-	que.push(root);
-	while (!que.empty()) {
-		TreeNode* cur = que.front();
-		que.pop();
-		if (!cur->left) {
-			cur->left = maxTree(cur->left, value);
-			break;
+int getSpecificSubArrayAmount(vector<int>& v, int target) {
+	if (v.empty()) return 0;
+	int counts = 0;
+	int i = 0;
+	int j = 0;
+	deque<int> qMax;
+	deque<int> qMin;
+	while (i < v.size()) {
+		while (j < v.size()) {
+			while (!qMax.empty() && v[j] >= v[qMax.back()]) qMax.pop_back();
+			qMax.push_back(j);
+			while (!qMin.empty() && v[j] <= v[qMin.back()]) qMin.pop_back();
+			qMin.push_back(j);
+			if (v[qMax.front()] - v[qMin.front()]  > target) break;
+			j++;
 		}
-		if (!cur->right) {
-			cur->right = maxTree(cur->right, value);
-			break;
-		}
-		que.push(cur->left);
-		que.push(cur->right);
+		if (qMax.front() == i) qMax.pop_front();
+		if (qMin.front() == i) qMin.pop_front();
+		counts += j - i;
+		i++;
 	}
-	return root;
+	return counts;
 }
-void buildHeap(vector<int>& v) {
-	for (int i = 0; i < v.size(); ++i) {
-		int index = i;
-		while (index > 0 && v[(index - 1) / 2] <= v[index]) {
-			swap(v[(index - 1) / 2], v[index]);
-			index = (index - 1) / 2;
-		}
-	}
-}
-TreeNode* buildMaxTree(vector<int>& v, TreeNode* root) {
-	if (v.empty()) return nullptr;
-	buildHeap(v);
-	for (auto i : v) root = maxTree(root, i);
-	return root;
-}
+
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -511,14 +497,8 @@ int main(int argc, char** argv) {
 	while (is.get(c))
 		cout << c;*/
 	//cout << os.str();
-	vector<int> v = { 3,4,5,1,2 };
-	TreeNode* root = nullptr;
-	root=buildMaxTree(v,root);
-	for (auto v : LevelOrderTraversal(root)) {
-		for (auto i : v) cout << i;
-		cout << endl;
-	}
-
+	vector<int> v = { 3,1,2,4 };//8
+	cout << getSpecificSubArrayAmount(v, 2) << endl;
 	system("pause");
 	return 0;
 }
