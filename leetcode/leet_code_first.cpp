@@ -554,23 +554,25 @@ namespace LinkList
 	//return 1->4->3->2->5->nullptr.
 	//Note : Given m, n satisfy the following condition : 1 ≤ m ≤ n ≤ length of list.
 	//时间复杂度O(n)，空间复杂度O(1)
-	ListNode* ReverseLinkedListII(ListNode* head, int m, int n) {
-		if (head == nullptr || m == n)
+	ListNode* ReverseLinkedListII(ListNode* head, int m, int n) {//已修bug
+		if (head == nullptr || m >= n)
 			return head;
-		ListNode* prev = head;
-		for (int i = 1; i < m - 1; ++i)
+		ListNode dummy(-1);
+		dummy.next = head;
+		ListNode* prev = &dummy;
+		for (int i = 0; i < m - 1; ++i)
 			prev = prev->next;
 		ListNode* head2 = prev;
 		prev = head2->next;
 		ListNode* cur = prev->next;
 
-		for (int i = m+1; i <= n; ++i) {//头插法
+		for (int i = m; i < n; ++i) {//头插法
 			prev->next = cur->next;
 			cur->next = head2->next;
 			head2->next = cur;
 			cur = prev->next;
 		}
-		return head;
+		return dummy.next;
 	}
 	//Given a linked list and a value x, partition it 
 	//such that all nodes less than x come before nodes greater than or equal to x.
@@ -1017,8 +1019,8 @@ namespace STR {
 		for (; i < s.length(); ++i) {
 			if (s[i] > '9' || s[i] < '0')
 				return -1;
-			if (num > INT_MAX / 10 || (num == INT_MAX && (s[i]-'0') > INT_MAX % 10)) 
-				return -1;	
+			if (num > INT_MAX / 10 || (num == INT_MAX / 10 && (s[i] - '0') > INT_MAX % 10))
+				return asign > 0 ? INT_MAX : INT_MIN;
 			num = num * 10 + s[i]-'0';
 		}
 		return num*asign;
@@ -2070,10 +2072,12 @@ namespace sorting {
 			{
 				if (l1->val < l2->val) {
 					prev->next = l1;
+					prev = l1;
 					l1 = l1->next;
 				}
 				else {
 					prev->next = l2;
+					prev = l2;
 					l2 = l2->next;
 				}
 			}
@@ -5967,7 +5971,7 @@ namespace OptimalSolution {
 		}
 		//反转单链表
 		ListNode* reverseForwardList(ListNode* head) {
-			if (head == nullptr || head->next == nullptr) return;
+			if (head == nullptr || head->next == nullptr) return head;
 			ListNode* pre = nullptr;
 			ListNode* cur = head;
 			ListNode* next = nullptr;
@@ -6011,7 +6015,7 @@ namespace OptimalSolution {
 			ListNode* head2 = pre;
 			ListNode* next = nullptr;
 			ListNode* cur = head2->next;
-			for (int i = m; i < n; ++i) {
+			for (int i = m; i < n; ++i) {//头插法
 				next = cur->next;
 				cur->next = next->next;
 				next->next = head2->next;
@@ -6029,5 +6033,9 @@ namespace OptimalSolution {
 				last = (last + m) % i;
 			return last;
 		}
+		//判断回文链表
+		//Solution I:快慢指针找到中点，把右半部份入栈，把栈内的依次元素弹出与左半部分元素比较，这里需要N/2的空间复杂度，时间复杂度O(N)
+		//Solution II:快慢指针找到中点，把右半部份按头插法翻转，分别从首尾向中间依次比较想不想等，最后再把右半部份按头插法还原，这种做法需要链表非const，它的空间复杂度为O(1),时间复杂度O(N)
+
 	}
 }

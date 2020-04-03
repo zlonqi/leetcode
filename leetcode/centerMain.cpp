@@ -367,6 +367,106 @@ int getSpecificSubArrayAmount(vector<int>& v, int target) {
 	return counts;
 }
 
+void addRec(vector<vector<int>>& vv, vector<bool>& flag) {
+	int a, b, x, y;
+	//scanf(" %d %d %d %d",&a,&b,&x,&y);
+	cin >> a >> b >> x >> y;
+	vector<int> rec = { a,b,x,y };
+	vv.emplace_back(rec);
+	flag.emplace_back(true);
+}
+
+void rmRec(vector<vector<int>>& vv, vector<bool>& flag) {
+	int which;
+	//scanf(" %d", &which);
+	cin >> which;
+	//vv.erase(remove(vv.begin(),vv.end(),vv[which-1]));
+	flag[which - 1] = false;
+}
+
+void query(vector<vector<int>>& v, vector<bool>& flag) {
+	int a, b, x, y;
+	//scanf(" %d %d %d %d",&a,&b,&x,&y);
+	cin >> a >> b >> x >> y;
+	int counts = 0;
+	for (int i = 0; i<v.size(); ++i) {
+		if (flag[i] == false) continue;
+		if (v[i][1]>y || v[i][3]<b || v[i][2]<a || v[i][0]>x)
+			continue;
+		counts++;
+	}
+	printf("%d\n", counts);
+}
+
+class MyString {
+public:
+	explicit MyString(){
+		cout << "call ::nonarg constructor()" << this<< endl;
+	}
+	explicit MyString(char* string):data(string){
+		if (string == nullptr) return;
+		int size = 0;
+		char* p = string;
+		while (*p != '\0') {
+			++size;
+			++p;
+		}
+		size_t = size + 1;
+		data = new char[size_t];
+		if (data == nullptr) return;
+		memcpy(data, string, size_t);
+		cout << "call ::constructor()" << this<<endl;
+	}
+	explicit MyString(const MyString& string) {//禁止这样拷贝构造MyString sss = ss;
+		if (string.data == nullptr) return;
+		int size = 0;
+		char* p = string.data;
+		while (*p != '\0') {
+			++size;
+			++p;
+		}
+		size_t = size + 1;
+		data = new char[size_t];
+		if (data == nullptr) return;
+		memcpy(data, string.data, size_t);
+		cout << "call ::copy constructor()" <<this<< endl;
+	}
+	~MyString() {
+		if (data != nullptr)	delete data;
+		data = nullptr;
+		size_t = 0;
+		cout << "call ::destructor()" << this<< endl;
+	}
+	MyString(MyString&& string)noexcept:data(string.data){//需要移动语义，所以不能为const
+		string.data = nullptr;
+		cout << "move copy constructor()" << this << endl;
+	}
+	const MyString& operator=(const MyString& string) {//异常安全做法,在内存不够抛出bad_alloc时不会改变原data的内容
+		if (&string == this) return *this;
+		MyString nonConst(string);//string 是 const 常量，不能更改，所以借助中间值
+		char* tmp = nonConst.data;//这里由于是指针，不存在拷贝，所以std::move()可用可不用
+		nonConst.data = data;
+		data = tmp;
+		size_t = string.size_t;
+		cout << "call ::assightment" <<  endl;
+		return *this;
+		//退出前将析构nonConst中间变量，即delete nonConst.data指向的内存，这里交换后就是原来data所指的区域
+	}
+	const MyString& operator=(MyString&& string)noexcept {
+		if (&string == this) return *this;
+		delete data;
+		data = string.data;
+		string.data = nullptr;
+		cout << "call ::move assightment" << endl;
+		return *this;
+	}
+	char* getString() {
+		return data;
+	}
+private:
+	char* data = nullptr;
+	uint64_t size_t = 0;
+};
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -410,95 +510,114 @@ int main(int argc, char** argv) {
 	printf("The moon completes %.2f orbits per Earth year.\n", d1 / d2);*/
 	//string s = "192.168.0.1..1/root/a.b/c end";
 	//char* delim = "./ ";
-	//char* context;
-	//char* pch;
-	//char* end;
-	//pch=strtok_s(const_cast<char*>(s.c_str()), delim,&context);
-	//while (pch)
-	//{
-	//	double d = strtod(pch, &end);
-	//	//if(!end)
-	//	cout << *end << "\t";
-	//		cout << d << endl;
-	//	pch=strtok_s(NULL, delim, &context);
-	//}
-	/*string s = "))()([)][()[]])";
-	bool flag = s.end() == end(s);
-	cout << flag << endl;
-	system("pause");*/
-	/*vector<vector<int>> vv{ {} };
-	cout << vv.size() << endl;
-	cout << vv[0].empty() << endl;*/
-	//auto start = clock();
-	//cout << clock() - start << endl;
-	/*vector<int> money = { 1,2,5,10,20,50,100,200 };
-	int amount = 169;
-	vector<vector<int>> vret;
-	double start = clock();
-	cout << getSpecificAmount(money, amount,vret,10) << endl;
-	cout << clock() - start << endl;
-	for (auto c : vret) {
-	for (auto i : c)
-	cout << i << "\t";
-	cout << endl;
-	}*/
-	/*stringstream ss;
-	char c[] = { '1','2','3','\0' };
-	string s = c;
-	cout <<s<< endl;*/
-	//string s = "1326%acm#136";
-	//int left, right;
-	//	for (int i = 0; i < s.size(); ++i)
-	//		if (s[i] == '%')
-	//			left = i;
-	//	for(int i=left+1;i<s.size();++i)
-	//		if (s[i] == '#') {
-	//			right = i;
-	//			break;
-	//		}
-	//	string t;
-	//	for (int i = s[left - 1]-'0'; i > 0; --i)
-	//		t += s.substr(left + 1, right - left-1);
-	//	cout << s<<endl;
-	/*vector<int> v{ 1,2,3,4,5,6 };
-	std::vector<std::thread> threads;
-	threads.push_back(std::thread(printArray,v));
-	threads.push_back(std::thread(printArray, v));
-	threads.push_back(std::thread(printArray, v));
-	std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));*/
-	/*vector<int> v = { 1,1,1,1,1,2,3,6,6,6,7,8,8,8,8,10,10,10,16,16,16};
-	int k = 1;
-	int n = Duplicates_ks(v,k);
-	for (int i = 0; i < n; ++i)
-	cout << v[i];*/
-	//std::vector<std::thread> threads;
-	//threads.emplace_back(thread(SingletonForHungry::getInstance));
-	//threads.emplace_back(thread(SingletonForHungry::getInstance));
-	//threads.emplace_back(thread(SingletonForHungry::getInstance));
-	//for (auto &t : threads)
-	//	t.join();
-	//I need success;
-	/*string s = "3[abc]c2[3[a]b]";
-	cout << decodeStr(s) << endl;*/
-	/*vector<int> v = { 3,6,1,5,4,2 };
-	TreePNode* root = nullptr;
-	for (auto i : v) root = buildTree(root, i);
-	cout << getNext(root)->value << endl;*/
-	/*float a = 0.9999999;
-	float b = 0.9999998;
-	float c = 0.0000012;
-	assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
-	
-	/*stringstream ss;
-	ostream os(ss.rdbuf());
-	istream is(ss.rdbuf());
-	os << "hello,world!";
-	char c;
-	while (is.get(c))
-		cout << c;*/
+//char* context;
+//char* pch;
+//char* end;
+//pch=strtok_s(const_cast<char*>(s.c_str()), delim,&context);
+//while (pch)
+//{
+//	double d = strtod(pch, &end);
+//	//if(!end)
+//	cout << *end << "\t";
+//		cout << d << endl;
+//	pch=strtok_s(NULL, delim, &context);
+//}
+/*string s = "))()([)][()[]])";
+bool flag = s.end() == end(s);
+cout << flag << endl;
+system("pause");*/
+/*vector<vector<int>> vv{ {} };
+cout << vv.size() << endl;
+cout << vv[0].empty() << endl;*/
+//auto start = clock();
+//cout << clock() - start << endl;
+/*vector<int> money = { 1,2,5,10,20,50,100,200 };
+int amount = 169;
+vector<vector<int>> vret;
+double start = clock();
+cout << getSpecificAmount(money, amount,vret,10) << endl;
+cout << clock() - start << endl;
+for (auto c : vret) {
+for (auto i : c)
+cout << i << "\t";
+cout << endl;
+}*/
+/*stringstream ss;
+char c[] = { '1','2','3','\0' };
+string s = c;
+cout <<s<< endl;*/
+//string s = "1326%acm#136";
+//int left, right;
+//	for (int i = 0; i < s.size(); ++i)
+//		if (s[i] == '%')
+//			left = i;
+//	for(int i=left+1;i<s.size();++i)
+//		if (s[i] == '#') {
+//			right = i;
+//			break;
+//		}
+//	string t;
+//	for (int i = s[left - 1]-'0'; i > 0; --i)
+//		t += s.substr(left + 1, right - left-1);
+//	cout << s<<endl;
+/*vector<int> v{ 1,2,3,4,5,6 };
+std::vector<std::thread> threads;
+threads.push_back(std::thread(printArray,v));
+threads.push_back(std::thread(printArray, v));
+threads.push_back(std::thread(printArray, v));
+std::for_each(threads.begin(), threads.end(), std::mem_fn(&std::thread::join));*/
+/*vector<int> v = { 1,1,1,1,1,2,3,6,6,6,7,8,8,8,8,10,10,10,16,16,16};
+int k = 1;
+int n = Duplicates_ks(v,k);
+for (int i = 0; i < n; ++i)
+cout << v[i];*/
+//std::vector<std::thread> threads;
+//threads.emplace_back(thread(SingletonForHungry::getInstance));
+//threads.emplace_back(thread(SingletonForHungry::getInstance));
+//threads.emplace_back(thread(SingletonForHungry::getInstance));
+//for (auto &t : threads)
+//	t.join();
+//I need success;
+/*string s = "3[abc]c2[3[a]b]";
+cout << decodeStr(s) << endl;*/
+/*vector<int> v = { 3,6,1,5,4,2 };
+TreePNode* root = nullptr;
+for (auto i : v) root = buildTree(root, i);
+cout << getNext(root)->value << endl;*/
+/*float a = 0.9999999;
+float b = 0.9999998;
+float c = 0.0000012;
+assert(IsEqual(a - b, c, ABSOLUTE_ERROR));*/
+
+/*stringstream ss;
+ostream os(ss.rdbuf());
+istream is(ss.rdbuf());
+os << "hello,world!";
+char c;
+while (is.get(c))
+	cout << c;*/
 	//cout << os.str();
-	vector<int> v = { 3,1,2,4 };//8
-	cout << getSpecificSubArrayAmount(v, 2) << endl;
+
+	//int* p = new int(1);
+	//{
+	//	shared_ptr<int> ptr(p);
+	//	cout << ptr.use_count() << endl;
+	//	shared_ptr<int> ptr2(ptr);
+	//	cout << ptr2.use_count() << endl;
+	//}
+	//unique_ptr<int> uptr = make_unique<int>(1);
+	//typedef void(*ptr)(int , int);
+	//unique_ptr<int> uptr2(std::move(uptr));//std::move()转移了控制权后，uptr内的指针将会被置空，故无法再使用uptr了，uptr会在退出生存期的时候析构
+	//*uptr2 = 1;
+	//cout << *uptr << endl;
+	{
+		MyString s("123456");
+		MyString ss(std::move(s));
+		MyString sss;
+		sss = std::move(ss);
+		cout << sss.getString() << endl;
+	}
+	
 	system("pause");
 	return 0;
 }
