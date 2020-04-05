@@ -5965,7 +5965,7 @@ namespace OptimalSolution {
 				cur = cur->next;
 			}
 			ListNode* target = cur->next;
-			cur = target->next;
+			cur->next = target->next;
 			delete target;
 			return head;
 		}
@@ -6036,6 +6036,11 @@ namespace OptimalSolution {
 		//判断回文链表
 		//Solution I:快慢指针找到中点，把右半部份入栈，把栈内的依次元素弹出与左半部分元素比较，这里需要N/2的空间复杂度，时间复杂度O(N)
 		//Solution II:快慢指针找到中点，把右半部份按头插法翻转，分别从首尾向中间依次比较想不想等，最后再把右半部份按头插法还原，这种做法需要链表非const，它的空间复杂度为O(1),时间复杂度O(N)
+
+		//删除无序单链表中重复的节点
+		//Solution I:时间复杂度O(N)，空间复杂度O(N)，哈希表，如果遍历的当前元素是哈希表中存在的，则删除
+		//Solution II: 空间复杂度O(1)，时间复杂度O(N**2)，类似于选择排序，如果当前元素值为N，遍历链表，则把之后值为N的节点全部删除
+
 
 	}
 }
