@@ -16,6 +16,7 @@ using namespace std;
 #include<unordered_set>
 #include<bitset>
 #include<time.h>
+#include<sstream>
 #include<assert.h>
 
 //第一遍
@@ -4795,6 +4796,7 @@ namespace OfferGot {
 	}
 	//序列化和反序列化 二叉树
 	//前序遍历来序列化为树的线性表示，通过线性表示序列来重构二叉树以实现反序列化
+	//Solution I:前序遍历序列化和前序遍历反序列化
 	class SerialBinTree {
 		//测试用例和代码
 		//stringstream ss;
@@ -4812,16 +4814,16 @@ namespace OfferGot {
 	public:
 		void serial(TreeNode* root, ostream& stream) {
 			if (root == nullptr) {
-				stream << '$';
+				stream << '$,';
 				return;
 			}
-			stream << root->value;
+			stream << root->value << ',';
 			serial(root->left, stream);
 			serial(root->right, stream);
 		}
 		TreeNode* deSerial(TreeNode* root, istream& stream) {
 			int num;
-			if (readChar(num, stream)) {
+			if (readStream(num, stream)) {
 				root = new TreeNode(num);
 				root->left = deSerial(root->left, stream);
 				root->right = deSerial(root->right, stream);
@@ -4829,12 +4831,84 @@ namespace OfferGot {
 			return root;
 		}
 	private:
-		bool readChar(int& num, istream& stream) {
-			char c;
-			stream.get(c);
-			if (c<'0' || c>'9') return false;
-			num = c - '0';
-			return true;
+		bool readStream(int& num, istream& stream) {
+			if (stream.eof()) return false;
+			char buf[32];
+			buf[0] = '\0';
+
+			char ch;
+			stream >> ch;
+			int i = 0;
+			while (!stream.eof() && ch != ',') {
+				buf[i++] = ch;
+				stream >> ch;
+			}
+			bool isNumeric = false;
+			if (i > 0 && buf[0] != '$') {
+				num = atoi(buf);
+				isNumeric = true;
+			}
+			return isNumeric;
+		}
+	};
+	//Solution II:层次遍历序列化和层次遍历反序列化
+	class SerialBinTreeII {
+	public:
+		SerialBinTreeII(TreeNode* root) {
+			if (root == nullptr) return;
+			string s;
+			deque<TreeNode*> cur;
+			cur.emplace_back(root->value);
+			while (!cur.empty()) {
+				TreeNode* itr = cur.front();
+				cur.pop_front();
+				s += to_string(itr->value);
+				s += ",";
+
+				if (itr->left)
+					cur.emplace_back(itr->left);
+				else
+					s += "$,";
+				if (itr->right)
+					cur.emplace_back(itr->right);
+				else
+					s += "$,";
+			}
+			cout << s << endl;
+		}
+		TreeNode* deSerialBinTree(string& s) {
+			TreeNode* root = nullptr;
+			vector<string> vs;
+			split(s, vs, ',');
+			if (vs.empty()||vs[0]=="$") return root;
+			int index = 0;
+			root = generateNodeByString(vs[index++]);
+			deque<TreeNode*> cur;
+			cur.emplace_back(root);
+			while (!cur.empty()) {
+				TreeNode* itr = cur.front();
+				cur.pop_front();
+
+				itr->left = generateNodeByString(vs[index++]);
+				if (itr->left) cur.emplace_back(itr->left);
+				itr->right = generateNodeByString(vs[index++]);
+				if (itr->right) cur.emplace_back(itr->right);
+			}
+			return root;
+		}
+	private:
+		void split(const string& s, vector<string>& vret, const char flag = ' ') {
+			vret.clear();
+			istringstream ss(s);
+			string tmp;
+			while (getline(ss, tmp, flag))
+				vret.emplace_back(tmp);
+			return;
+		}
+		TreeNode* generateNodeByString(string& s) {
+			if (s == "$")
+				return nullptr;
+			return new TreeNode(atoi(s.c_str()));
 		}
 	};
 	//全排列
@@ -6042,5 +6116,132 @@ namespace OptimalSolution {
 		//Solution II: 空间复杂度O(1)，时间复杂度O(N**2)，类似于选择排序，如果当前元素值为N，遍历链表，则把之后值为N的节点全部删除
 
 
+	}
+	namespace BinTree {
+		struct TreeNode {
+			TreeNode(int v) {
+				val = v;
+			}
+			TreeNode* left = nullptr;
+			TreeNode* right = nullptr;
+			int val;
+		};
+		//逆时针打印边界结点
+		//该类节点包括：头节点、同一层中的最左和最右节点、不是第二种中的叶子节点
+		class PrintEdgeNode {
+		public:
+			PrintEdgeNode(TreeNode* root) {
+				if (root == nullptr) return;
+				int height = getTreeHeight(root);
+				vector<pair<int, int>> vp;
+				vp.reserve(height);
+				getHeadAndTail(root, vp);
+
+				cout << root->val << "\t";//打印头节点
+				for (auto itr : vp)
+					cout << itr.first << "\t"; //打印同一层中最左边的节点
+				printLeaf(root, 0, vp);//打印第三种节点
+
+				for (auto itr = vp.rbegin(); itr != vp.rend(); ++itr) {
+					if (itr->first != itr->second) //打印同一层中最右边的节点，但不是头节点
+						cout << itr->second << "\t";
+				}
+			}
+		private:
+			int getTreeHeight(TreeNode* root) {
+				if (root == nullptr)
+					return 0;
+				int leftHeight = getTreeHeight(root->left);
+				int rightHeight = getTreeHeight(root->right);
+
+				return max(leftHeight, rightHeight) + 1;
+			}
+
+			void getHeadAndTail(TreeNode* root, vector<pair<int, int>>& vp) {
+				if (root == nullptr) return;
+				deque<TreeNode*> cur;
+				deque<TreeNode*> next;
+				cur.emplace_back(root);
+				while (!cur.empty()) {
+					while (!cur.empty()) {
+						vp.emplace_back(make_pair(cur.front()->val, cur.back()->val));
+						TreeNode* itr = cur.front();
+						cur.pop_front();
+
+						if (itr->left) next.emplace_back(itr->left);
+						if (itr->right) next.emplace_back(itr->right);
+					}
+					swap(next, cur);
+				}
+			}
+
+			void printLeaf(TreeNode* root, int level, vector<pair<int,int>>& vp) {
+				if (root == nullptr) return;
+				if (root->left == nullptr && root->right == nullptr && vp[level].first != root->val && vp[level].second != root->val)
+					cout << root->val << "\t";
+				printLeaf(root->left, level + 1, vp);
+				printLeaf(root->right, level + 1, vp);
+			}
+		};
+		//逆时针打印边界结点
+		//该类节点包括：头节点、叶子节点、左树延伸下去路径上的节点、右树延伸下去路径上的节点
+		class PrintEdgeNodeII {
+		public:
+			void printEdgeNodeII(TreeNode* root) {
+				if (root == nullptr) return;
+				cout << root->val << "\t";
+				if (root->left != nullptr && root->right != nullptr) {
+					printLeft(root->left, true);
+					printRight(root->right, true);
+				}
+				else {
+					printEdgeNodeII(root->left != nullptr ? root->left : root->right);
+				}
+			}
+		private:
+			void printLeft(TreeNode* root, bool print) {
+				if (root == nullptr) return;
+				if (print || (root->left == nullptr&&root->right == nullptr))
+					cout << root->val << "\t";
+				printLeft(root->left, print);
+				printLeft(root->right, print&&root->left == nullptr ? true : false);
+			}
+
+			void printRight(TreeNode* root, bool print) {
+				if (root == nullptr) return;
+				printRight(root->left, print&&root->right == nullptr:true : false);
+				printRight(root->right, print);
+				if (print || (root->left == nullptr&&root->right == nullptr))
+					cout << root->val << "\t";
+			}
+		};
+		//直观打印二叉树
+		class VisualizeBinTree {
+		public:
+			VisualizeBinTree(TreeNode* root) {
+				if (root == nullptr) return;
+				
+				printInOrder(root, 0, 'H', 17);
+			}
+		private:
+			void printInOrder(TreeNode* root, int height, char symbol, int len) {
+				if (root == nullptr) return;
+				
+				printInOrder(root->right, height + 1, 'v', len);
+				string item = symbol + to_string(root->val) + symbol;
+				int lenLft = (len - item.length()) / 2;
+				int lenRgt = len - item.length() - lenLft;
+				item = getSpace(lenLft) + item + getSpace(lenRgt);
+				cout << getSpace(len*height) << item << endl;
+				printInOrder(root->left, height + 1, '^', len);
+
+			}
+			string getSpace(int num) {
+				string s;
+				for (int i = 0; i < num; ++i)
+					s += " ";
+				return s;
+			}
+		};
 	}
 }
