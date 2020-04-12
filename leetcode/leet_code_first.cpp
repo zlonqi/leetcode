@@ -1711,6 +1711,29 @@ namespace Tree {
 			return cur;
 		}
 	};
+	class BuildTreeIII {
+		//Building Tree From Post-order and pre-order . 
+		//但是只有所有节点的的值都不相同且孩子数为0或2的二叉树才能被先序和后序遍历重建起来
+		//Solution : 此处以空间换时间，用哈希表记录位置和值的映射关系，避免了find()和distance()
+	public:
+		TreeNode* buildTree(vector<int>& pre, vector<int>& post) {
+			if (pre.empty() || post.empty() || pre.size() != post.size())
+				return nullptr;
+			for (int i = 0; i < post.size(); ++i)
+				postMap.insert(make_pair(post[i], i));
+
+		}
+	private:
+		unordered_map<int, int> postMap;
+		TreeNode* buildTree(vector<int>& pre, int pre_left, int pre_right, vector<int>& post, int post_left, int post_right) {
+			TreeNode* root = new TreeNode(post[post_right--]);
+			if (pre_left == pre_right) return root;
+			int index = postMap[pre[++pre_left]];
+			root->left = buildTree(pre, pre_left, pre_left + index-post_left, post, post_left, index);
+			root->right = buildTree(pre, pre_left + index - post_left + 1, pre_right, post, index + 1, post_right);
+			return root;
+		}
+	};
 	class UniqueBSTs {
 	public:
 		//给定N个节点值，返回能构造成二叉搜索树的数量
@@ -6209,7 +6232,7 @@ namespace OptimalSolution {
 
 			void printRight(TreeNode* root, bool print) {
 				if (root == nullptr) return;
-				printRight(root->left, print&&root->right == nullptr:true : false);
+				printRight(root->left, print&&root->right == nullptr?true : false);
 				printRight(root->right, print);
 				if (print || (root->left == nullptr&&root->right == nullptr))
 					cout << root->val << "\t";
@@ -6241,6 +6264,584 @@ namespace OptimalSolution {
 				for (int i = 0; i < num; ++i)
 					s += " ";
 				return s;
+			}
+		};
+		//神级遍历二叉树
+		//Morris, 时间复杂度O(N), 空间复杂度O(1)
+		//In-Order
+		void MorrisInOrder(TreeNode* root) {
+			if (root == nullptr) return;
+			TreeNode* cur = root;
+			TreeNode* child = nullptr;
+			while (cur != nullptr) {
+				child = cur->left;
+				if (child != nullptr) {
+					while (child->right != nullptr && child->right != cur)
+						child = child->right;
+					if (child->right == nullptr) {
+						child->right = cur;
+						cur = cur->left;
+						continue;
+					}
+					else {
+						child->right = nullptr;
+					}
+				}
+				cout << cur->val << "\t";
+				cur = cur->right;
+			}
+		}
+		//Pre-Order
+		void MorrisPreOrder(TreeNode* root) {
+			if (root == nullptr) return;
+			TreeNode* cur = root;
+			TreeNode* child = nullptr;
+			while (cur != nullptr) {
+				child = cur->left;
+				if (child != nullptr) {
+					while (child->right != nullptr && child->right != cur)
+						child = child->right;
+					if (child->right == nullptr) {
+						child->right = cur;
+						cout << cur->val << "\t"; //在开始处理左子树之前打印头节点
+						cur = cur->left;
+						continue;
+					}
+					else {
+						child->right = nullptr;
+					}
+				}
+				else {
+					cout << cur->val << "\t";//打印叶子节点
+				}
+				cur = cur->right;
+			}
+		}
+		//Post-Order
+		//从左往右依次逆序打印左子树右边界
+		class MorrisPostOrder {
+		public:
+			MorrisPostOrder(TreeNode* root) {
+				if (root == nullptr) return;
+				TreeNode* cur = root;
+				TreeNode* child = nullptr;
+				while (cur != nullptr) {
+					child = cur->left;
+					if (child != nullptr) {
+						while (child->right != nullptr && child->right != cur)
+							child = child->right;
+						if (child->right == nullptr) {
+							child->right = cur;
+							cur = cur->left;
+							continue;
+						}
+						else {
+							child->right = nullptr;
+							printRightEdge(cur->left);
+						}
+					}
+					cur = cur->right;
+				}
+				printRightEdge(root);
+			}
+		private:
+			void printRightEdge(TreeNode* root) {
+				TreeNode* tail = reverseEdge(root);
+				TreeNode* cur = tail;
+				while (cur != nullptr) {
+					cout << cur->val << "\t";
+					cur = cur->right;
+				}
+				reverseEdge(tail);
+			}
+
+			TreeNode* reverseEdge(TreeNode* root) {
+				if (root == nullptr) return root;
+				TreeNode* pre = nullptr;
+				TreeNode* cur = root;
+				TreeNode* next = nullptr;
+				while (cur != nullptr) {
+					next = cur->right;
+					cur->right = pre;
+					pre = cur;
+					cur = next;
+				}
+				return pre;
+			}
+		};
+		//寻求二叉树中的节点最多的二叉搜索子树，并返回该子树的头节点
+		//时间复杂度O(N)，空间复杂度O(h)
+		//Record[3] = {size,min,max}
+		class MaxSubBST {
+		public:
+			TreeNode* getMaxSubBST(TreeNode* root) {
+				if (root == nullptr) return root;
+				int* p = (int*)malloc(sizeof(int) * 3);
+
+			}
+		private:
+			TreeNode* postOrderFind(TreeNode* root, int* record) {
+				if (root == nullptr) {
+					record[0] = 0;
+					record[1] = INT_MAX;
+					record[2] = INT_MIN;
+					return root;
+				}
+				int value = root->val;
+				TreeNode* left = root->left;
+				TreeNode* right = root->right;
+				TreeNode* LNode = postOrderFind(root->left, record);
+				int lsize = record[0];
+				int lmin = record[1];
+				int lmax = record[2];
+				TreeNode* RNode = postOrderFind(root->right, record);
+				int rsize = record[0];
+				int rmin = record[1];
+				int rmax = record[2];
+				record[1] = min(lmin, value);
+				record[2] = max(rmax, value);
+				if (LNode == left && RNode == right && lmax < value && value < rmin) {
+					record[0] = lsize + rsize + 1;
+					return root;
+				}
+				record[0] = max(lsize, rsize);
+				return lsize > rsize ? LNode : RNode;
+			}
+		};
+		//寻找二叉树中满足二叉搜索条件的最大拓扑结构，返回其拓扑结构的大小(拓扑结构是相互连接的节点形成的结构，不一定是子树。
+		//时间复杂度O(N**2)
+		//略难
+
+		//调整二叉搜索树中的两个错误节点
+		//中序遍历找到逆序的两处或一处，取第一处的大的节点和第二处的小的节点
+		//要求1：值调整，则交换这两个节点的值
+		void findTwoErrorNode(TreeNode* root, TreeNode** Error) {
+			if (root == nullptr) return;
+			Error = new TreeNode*[2];
+			Error[0] = nullptr;
+			stack<TreeNode*> stk;
+			TreeNode* pre = nullptr;
+			TreeNode* cur = root;
+			while (!stk.empty() || cur != nullptr) {
+				if (cur != nullptr) {
+					stk.push(cur);
+					cur = cur->left;
+				}
+				else {
+					cur = stk.top();
+					stk.pop();
+					if (pre != nullptr && pre->val > cur->val) {
+						Error[0] = Error[0] == nullptr ? pre : Error[0];
+						Error[1] = cur;
+					}
+					pre = cur;
+					cur = cur->right;
+				}
+			}
+			
+		}
+		//进阶要求：若不是简单的值交换，而是节点实际的交换
+		//这进阶解法复杂很多，总共要考虑14种情况
+
+		//判断t1中是否有和t2中拓扑结构完全相同的子树
+		//Solution I: 时间复杂度O(M*N)，空间复杂度O(1)
+		class T1IncludeT2 {
+		public:
+			bool isT1IncludeT2(TreeNode* t1, TreeNode* t2) {
+				if (t2 == nullptr) return true;
+				return InOrder(t1, t2);
+			}
+		private:
+			bool InOrder(TreeNode* t1, TreeNode* t2) {
+				if (t1 == nullptr && t2 == nullptr)
+					return true;
+				if (t1 == nullptr || t2 == nullptr)
+					return false;
+				if (t1->val == t2->val)
+					if (InOrder(t1->left, t2->left) && InOrder(t1->right, t2->right))
+						return true;
+				return InOrder(t1->left, t2) || InOrder(t1->right, t2);
+			}
+		};
+		//Solution II: 时间复杂度O(M+N)
+		//先将树序列化为字符串，再进行KMP解法,但需要一定的空间复杂度O(M)
+
+		//根据后续数组重建二叉搜索树
+		//先判断是否为二叉树后续遍历的结果，再重建二叉树
+		class PostOrderRebuildTree {
+		public:
+			TreeNode* rebuild(const vector<int>& v) {
+				if (v.empty()) return nullptr;
+				if (isPostOrder(v, 0, v.size() - 1))
+					return rebuildTree(v, 0, v.size()-1);
+				return nullptr;
+			}
+		private:
+			bool isPostOrder(const vector<int>& v, int begin, int end) {
+				if (v.empty() || begin>end) return false;
+				if (begin == end) return true;
+				int i = begin;
+				while (i < end && v[i] < v[end])
+					i++;
+				int j = i;
+				while (j<end && v[j]>v[end])
+					j++;
+				if (j < end) return false;
+				if (i == begin) return isPostOrder(v, i, end - 1);//特别处理只有右子树的情况
+				if (i == end) return isPostOrder(v, begin, i - 1);//***********左子树***
+				
+				return isPostOrder(v, begin, i - 1) && isPostOrder(v, i, end - 1);
+			}
+
+			TreeNode* rebuildTree(const vector<int>& v, int begin, int end) {
+				if (begin < end) return nullptr;
+				if (begin == end) return new TreeNode(v[end]);
+				TreeNode* root = new TreeNode(v[end]);
+				int i = begin;
+				while (i < end && v[i] < v[end])
+					i++;
+				root->left = rebuildTree(v, begin, i - 1);
+				root->right = rebuildTree(v, i, end - 1);
+				return root;
+			}
+		};
+
+		//判断是否为二叉排序树
+		//中序递归遍历或栈迭代或MorrisInOrder(涉及到更改结构恢复结构，所以发现pre.val>cur.val不能立即return,return 应该放到所有遍历结束时来
+
+		//判断是否为完全二叉树
+		//层次遍历，发现如有如下特点，则不是二叉树：1、有右孩子没有左孩子；2、如果当前节点并不全都有左右孩子，那其后的所有节点均为叶子节点
+		bool isCBT(TreeNode* root) {
+			if (root == nullptr) return root;
+			deque<TreeNode*> cur;
+			cur.push_back(root);
+			bool isleaf = false;
+			while (!cur.empty()) {
+				TreeNode* itr = cur.front();
+				cur.pop_front();
+				if ((isleaf && (itr->left || itr->right)) || (itr->left == nullptr && itr->right))
+					return false;
+				if (itr->left)
+					cur.push_back(itr->left);
+				if (itr->right)
+					cur.push_back(itr->right);
+				else
+					isleaf = true;
+			}
+			return true;
+		}
+
+		//把有序数组还原成一棵二叉树，它的中序遍历结果和该有序数组相同
+		//中间的值为root的值，递归左子树和右子树
+		TreeNode* rebuild(const vector<int>& v, int begin, int end);
+		TreeNode* rebuildBSTfromSortedSeq(const vector<int>& v) {
+			if (v.empty()) return nullptr;
+			return rebuild(v, 0, v.size() - 1);
+		}
+		TreeNode* rebuild(const vector<int>& v, int begin, int end) {
+			if (begin > end) return nullptr;
+			if (begin == end) return new TreeNode(v[end]);
+			int mid = (end - begin) / 2 + begin;
+			TreeNode* root = new TreeNode(v[mid]);
+			root->left = rebuild(v, begin, mid - 1);
+			root->right = rebuild(v, mid + 1, end);
+			return root;
+		}
+
+		//两个节点的最近公共祖先
+		//Solution I: 递归，时间复杂度根据master公式，a=2,b=2,d=0，时间复杂度为O(N)，空间复杂度为O(1)
+		TreeNode* findNearestAncestor(TreeNode* root, TreeNode* node1, TreeNode* node2) {
+			if (root == nullptr || root == node1 || root == node2)
+				return root;
+			TreeNode* left = findNearestAncestor(root->left, node1, node2);
+			TreeNode* right = findNearestAncestor(root->right, node1, node2);
+			if (left != nullptr && right != nullptr)
+				return root;
+			return left != nullptr ? left : right;
+		}
+		//Solution II: 使用辅助内存，遍历得到从root到目标节点的路径，转换为求两个TreeNode*数组的公共节点，类似于求两个单链表的交点解法，O(m+n)时间内完成
+
+		//题目进阶：如果查询十分频繁，想办法优化单次查询的时间
+		//Solution I: 用哈希表记录各个节点与其父节点的映射关系
+		//建哈希表的时间复杂度为O(N)，空间复杂度为O(N),查询的时间复杂度为O(h)，h为树高
+		class NearestAncestor {
+		public:
+			NearestAncestor(TreeNode* root) {
+				if (root == nullptr) return;
+				map.insert(make_pair(root, nullptr));
+				buildMap(root);
+			}
+
+			TreeNode* query(TreeNode* node1, TreeNode* node2) {
+				if (node1 == nullptr || node2 == nullptr) return nullptr;
+				if (map.find(node1) == map.end() || map.find(node2) == map.end())
+					return nullptr;
+				unordered_set<TreeNode*> hashset;
+				hashset.insert(node1);
+				while (map.find(node1) != map.end() && map[node1]) {
+					hashset.insert(map[node1]);
+					node1 = map[node1];
+				}
+				while (hashset.find(node2) == hashset.end()) {
+					node2 = map[node2];
+				}
+				return node2;
+			}
+		private:
+			unordered_map<TreeNode*, TreeNode*> map;
+
+			void buildMap(TreeNode* root) {
+				if (root == nullptr) return;
+				if (root->left) map.insert(make_pair(root->left, root));
+				if (root->right) map.insert(make_pair(root->right, root));
+				buildMap(root->left);
+				buildMap(root->right);
+			}
+		};
+
+		//题目再进阶：给定二叉树的头节点，节点数N，想要查询的条数M，请在时间复杂度O(N+M)内完成所有的查询
+		//Solution: Tarjan算法与并查集解法
+		//有点难理解
+		//二叉树并查集
+		class DisJoinSet {
+		public:
+			DisJoinSet(){}
+			void makeSet(TreeNode* root) {
+				bossMap.clear();
+				rankMap.clear();
+				preOrderMake(root);
+			}
+
+			void setUnion(TreeNode* a, TreeNode* b) {
+				if (a == nullptr || b == nullptr) return;
+				TreeNode* aBoss = findBoss(a);
+				TreeNode* bBoss = findBoss(b);
+				if (aBoss != bBoss) {
+					int aRank = rankMap[a];
+					int bRank = rankMap[b];
+					if (aRank < bRank) bossMap[a] = b;
+					else if (aRank > bRank) bossMap[b] = a;
+					else {
+						bossMap[a] = b;
+						rankMap[b] += 1;
+					}
+				}
+			}
+
+			TreeNode* findBoss(TreeNode* root) {
+				if (root == nullptr) return nullptr;
+				TreeNode* boss = bossMap[root];
+				if (boss != root)
+					boss = findBoss(boss);
+				bossMap[root] = boss;
+				return boss;
+			}
+		private:
+			unordered_map<TreeNode*, TreeNode*> bossMap;
+			unordered_map<TreeNode*, int> rankMap;
+			void preOrderMake(TreeNode* root) {
+				if (root == nullptr) return;
+				bossMap[root] = root;
+				rankMap[root] = 0;
+				preOrderMake(root->left);
+				preOrderMake(root->right);
+			}
+		};
+		//单条请求
+		struct Query {
+			TreeNode* a = nullptr;
+			TreeNode* b = nullptr;
+			Query(TreeNode* aNode, TreeNode* bNode) :
+				a(aNode),
+				b(bNode) {
+
+			}
+		};
+		//Tarjan解法
+		class Tarjan {
+		public:
+			Tarjan() {
+				sets = new DisJoinSet();
+			}
+			~Tarjan() {
+				delete sets;
+			}
+			vector<TreeNode*> query(TreeNode* root, vector<Query*>& query) {
+				if (root == nullptr || query.empty()) return vector<TreeNode*>();
+				vector<TreeNode*> ans(query.size());
+				setQueries(query, ans);
+				sets->makeSet(root);
+				setAnswers(root, ans);
+				return ans;
+			}
+		private:
+			DisJoinSet* sets;
+			unordered_map<TreeNode*, TreeNode*> ancestorMap;
+			unordered_map<TreeNode*, list<TreeNode*>> queryMap;
+			unordered_map<TreeNode*, list<int>> indexMap;
+			void setQueries(vector<Query*>& query, vector<TreeNode*>& ans) {
+				TreeNode* node1 = nullptr;
+				TreeNode* node2 = nullptr;
+				for (int i = 0; i < query.size(); ++i) {
+					node1 = query[i]->a;
+					node2 = query[i]->b;
+					if (node1 == node2 || node1 == nullptr || node2 == nullptr)
+						ans[i] = node1 != nullptr ? node1 : node2;
+					if (queryMap.find(node1) == queryMap.end()) {
+						queryMap.insert(make_pair(node1, list<TreeNode*>()));
+						indexMap.insert(make_pair(node1, list<int>()));
+					}
+					if (queryMap.find(node2) == queryMap.end()) {
+						queryMap.insert(make_pair(node2, list<TreeNode*>()));
+						indexMap.insert(make_pair(node2, list<int>()));
+					}
+					queryMap[node1].push_back(node2);
+					indexMap[node1].push_back(i);
+					queryMap[node2].push_back(node1);
+					indexMap[node2].push_back(i);
+				}
+			}
+			void setAnswers(TreeNode* root, vector<TreeNode*>& ans) {
+				if (root == nullptr) return;
+				setAnswers(root->left, ans);
+				sets->setUnion(root, root->left);
+				ancestorMap[sets->findBoss(root)] = root;
+				setAnswers(root->right, ans);
+				sets->setUnion(root, root->right);
+				ancestorMap[sets->findBoss(root)] = root;
+
+				list<TreeNode*> queryList = queryMap[root];
+				list<int> indexList = indexMap[root];
+
+				TreeNode* cur = nullptr;
+				TreeNode* boss = nullptr;
+				int index = 0;
+				while (!indexList.empty()) {
+					cur = queryList.front();
+					queryList.pop_front();
+					index = indexList.front();
+					indexList.pop_front();
+					boss = sets->findBoss(cur);
+					while (ancestorMap.find(boss) != ancestorMap.end())
+						ans[index] = ancestorMap[boss];
+				}
+			}
+		};
+
+		//求二叉树结点间的最大距离
+		class MaxDistanc {
+		public:
+			int getMaxDistanceinBST(TreeNode* root) {
+				if (root == nullptr) return 0;
+
+			}
+		private:
+			int singleMax = 0;
+			int maxDis(TreeNode* root) {
+				if (root == nullptr) {
+					singleMax = 0;
+					return 0;
+				}
+				int lmax = maxDis(root->left);
+				int maxFromLeft = singleMax;
+				int rmax = maxDis(root->right);
+				int maxFromRight = singleMax;
+				int singleMax = max(maxFromLeft, maxFromRight) + 1;
+				return max(maxFromLeft + 1 + maxFromRight, max(lmax, rmax));
+			}
+		};
+
+		//已知二叉树所有节点的值都不相同，通过它的先序和中序数组生成后续数组
+		class PostArray {
+		public:
+			vector<int> getPostOrderSeq(vector<int>& pre, vector<int>& in) {
+				if (pre.empty() || in.empty() || pre.size() != in.size())
+					return vector<int>();
+				vector<int> post;
+				post.reserve(pre.size());
+				for (int i = 0; i < in.size(); ++i)
+					inMap.insert(make_pair(in[i], i));
+				rebuildPostArray(pre, 0, pre.size() - 1, in, 0, in.size() - 1, post, post.size() - 1);
+				return post;
+			}
+		private:
+			unordered_map<int, int> inMap;
+			void rebuildPostArray(vector<int>& pre, int pre_left, int pre_right,
+				vector<int>& in, int in_left, int in_right,
+				vector<int>& post, int post_right) {
+				post[post_right] = pre[pre_left++];
+				if (in_left == in_right) return;
+				int index = inMap[post[post_right]];
+				rebuildPostArray(pre, pre_left, pre_left + index -1 - in_left, in, in_left, index-1, post, index-1);
+				rebuildPostArray(pre, pre_left + index - in_left, pre_right, in, index + 1, in_right, post, post_right - 1);
+			}
+		};
+
+		//根据二叉搜索树中序遍历的结果（1，2，3，...，n）生成所有可能的BST（BST中序遍历结果的同分异构）
+		//问题一： 求同分异构体的总量，即有多少种
+		//Solution : DP
+		int isomerOfBST(int n) {
+			if (n < 2) return 1;
+			vector<int> v(n+1,0);
+			v[0] = 1;
+			for (int i = 1; i < n + 1; ++i)
+				for (int j = 1; j < i; ++j)
+					v[i] += v[j - 1] * v[i - j];
+			return v[n];
+		}
+		//进阶 : 重构出这些同分异构体，返回头节点即可
+		class BSTIsomer {
+		public:
+			vector<TreeNode*> isomerOfBST(int n) {
+				return genIsomer(1, n);
+			}
+		private:
+			vector<TreeNode*> genIsomer(int begin, int end) {
+				vector<TreeNode*> res;
+				if (begin > end) res.push_back(nullptr);
+				TreeNode* root = nullptr;
+				for (int i = begin; i < end + 1; ++i) {
+					root = new TreeNode(i);
+					vector<TreeNode*> lres = genIsomer(begin, i - 1);
+					vector<TreeNode*> rres = genIsomer(i + 1, end);
+					for(auto ltree : lres)
+						for (auto rtree : rres) {
+							root->left = ltree;
+							root->right = rtree;
+							res.push_back(cloneTree(root));
+						}
+				}
+				return res;
+			}
+			TreeNode* cloneTree(TreeNode* root) {
+				if (root == nullptr) return root;
+				TreeNode* head = new TreeNode(root->val);
+				head->left = cloneTree(root->left);
+				head->right = cloneTree(root->right);
+				return root;
+			}
+		};
+		//统计完全二叉树的节点数，使之时间复杂度小于O(N)
+		//逻辑分析
+		class CBTNodeCount {
+		public:
+			int nodesCount(TreeNode* root) {
+				return itrCount(root, 1, getLeftDepth(root, 1));
+			}
+		private:
+			int itrCount(TreeNode* root, int beginLevel, int h) {
+				if (h == 1) return 1;
+				if (getLeftDepth(root->right, beginLevel + 1) == h)
+					return (1 << (h - 1)) + itrCount(root->right, beginLevel + 1, h);
+				else
+					return (1 << (h - 2)) + itrCount(root->left, beginLevel + 1, h);
+			}
+			int getLeftDepth(TreeNode* root, int level) {
+				while (root) {
+					level++;
+					root = root->left;
+				}
+				return level - 1;
 			}
 		};
 	}
