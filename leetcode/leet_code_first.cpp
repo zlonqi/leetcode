@@ -135,7 +135,7 @@ namespace Array {
 		int length = 0;
 		int longest = 0;
 		for (auto i : v) {
-			if (v[i]) continue;
+			if (m[i]) continue;
 			m[i] = true;
 			length = 1;
 			for (int j = i + 1; m.find(j) != m.end(); ++j) {
@@ -3343,7 +3343,7 @@ namespace DynamicPlanning
 	//Solution 1:深搜，和CombinationSum I 一样，是不需要保存深搜结果的，但是像这样指数级的搜索会超时
 	//Solution 2:DP
 	int changeMoney(vector<int>& money, int target) {
-		if (money.empty() || target <= 0) return -1;
+		if (money.empty() || target <= 0) return 0;
 		sort(money.begin(), money.end());
 		int n = money.size();
 		//DP
@@ -3359,7 +3359,7 @@ namespace DynamicPlanning
 	//至少能兑换到几张纸币/枚硬币
 	//贪心
 	int changeLeastMoney(vector<int>& money, int target, vector<int>& vret) {
-		if (money.empty() || target <= 0) return -1;
+		if (money.empty() || target <= 0) return 0;
 		sort(money.begin(), money.end(), greater<int>());
 		int n = money.size();
 		int sum = 0;
@@ -3481,7 +3481,7 @@ namespace DynamicPlanning
 	//找到该序列可以用LCS的方法，时间复杂度O(N**2)，外加构造一个额外的连续递增字符串
 	//若只要求序列长度，则贪心算法,维护一个递增的栈，最后栈的大小就是最长递增序列的长度，时间复杂度O(N*logN)
 	int lis(const vector<int>& v) {
-		if (v.empty()) return -1;
+		if (v.empty()) return 0;
 		vector<int> vstk;
 		vstk.push_back(v[0]);
 		for (int i = 1; i < v.size(); ++i) {
@@ -4881,7 +4881,7 @@ namespace OfferGot {
 			if (root == nullptr) return;
 			string s;
 			deque<TreeNode*> cur;
-			cur.emplace_back(root->value);
+			cur.emplace_back(root);
 			while (!cur.empty()) {
 				TreeNode* itr = cur.front();
 				cur.pop_front();
@@ -5727,7 +5727,7 @@ namespace BitCalculation {
 	}
 }
 namespace OptimalSolution {
-	//献给左程云
+	//献给我自己
 	//仅用递归逆序一个栈
 	namespace StackAndQueue {
 		int getBottomOne(stack<int>& stk) {
@@ -6844,5 +6844,209 @@ namespace OptimalSolution {
 				return level - 1;
 			}
 		};
+	}
+	namespace dynamicPlan {
+		//斐波那契问题:0、1、1、2、3、5、8、13、21
+		//Solution I：递归，时间复杂度O(N**2)
+		//Solution II:DP,时间复杂度O(N)，空间复杂度O(N)
+		//Solution III：迭代，时间复杂度O(N)
+		//Solution IV:矩阵乘法，时间复杂度O(logN)，空间复杂度O(J*J*logN)，其中J为矩阵的阶乘，斐波那契数列F(N)=F(N-1)+F(N-2)，因为只与前2次结果相关，所以它的阶乘J=2
+		class Fabonacci {
+		public:
+			int solutionI(int n) {
+				if (n <= 0) return 0;
+				if (n == 1) return 1;
+				return solutionI(n - 1) + solutionI(n - 2);
+			}
+			int solutionII(int n) {
+				if (n <= 0) return 0;
+				if (n == 1) return 1;
+				int* dp = new int[n + 1];
+				dp[0] = 0, dp[1] = 1, dp[2] = 1;
+				for (int i = 2; i <= n; ++i)
+					dp[i] = dp[i - 1] + dp[i - 2];
+				return dp[n];
+			}
+			int solutionIII(int n) {
+				if (n <= 0) return 0;
+				if (n == 1) return 1;
+				int preOne = 1;
+				int preTwo = 0;
+				for (int i = 2; i <= n; ++i) {
+					int tmp = preOne;
+					preOne = preOne + preTwo;
+					preTwo = tmp;
+				}
+				return preOne;
+			}
+			//F(n) = F(n-1) + F(n-2);当n>>2时，一定可以得到(F(n),F(n-1))=(F(n-1),F(n-2))*|二阶特征矩阵|
+			//根据F(1)=1,F(2)=1,F(3)=2,F(4)=3,可O(1)内解得这个特征矩阵，
+			//推导到最终需要的(F(n),F(n-1))=(特征向量)*|特征矩阵|**(n-2)=VF*VM, 所以根据向量乘法得F(n)=VF*VM的第一列
+			//求VM可以用二分迭代法将复杂度降至log(N)，故总的时间复杂度是log(N)
+			int solutionIV(int n) {
+				if (n <= 0) return 0;
+				if (n == 1 || n == 2) return 1;
+				int unit = 2;
+				vector<vector<int>> base{ { 1,1 },{ 1,0 } };//本情景的特征矩阵
+				vector<int> radio = { 1,1 };//系数
+				vector<vector<int>> ret(unit, vector<int>(unit, 0));
+				for (int i = 0; i < unit; ++i) ret[i][i] = 1;//单位矩阵
+				MatrixSolution(base, ret, n - 2);
+				int sum = 0;
+				for (int i = 0; i < unit; ++i)
+					sum += radio[i] * ret[i][0];
+				return sum;
+			}
+		private:
+			void MatrixSolution(vector<vector<int>>& base, vector<vector<int>>& ret, int p) {
+				if (base.empty() || base[0].empty()) return;
+				for (; p != 0; p >>= 1) {
+					if (p & 1)
+						matrixMutil(ret, base, ret);
+					matrixMutil(base, base, base);
+				}
+			}
+			void matrixMutil(vector<vector<int>> A, vector<vector<int>> B, vector<vector<int>>& C) {
+				int in = A.size();
+				int kn = B.size();
+				int jn = B[0].size();
+				//vector<vector<int>> C(in,vector<int>(jn,0));
+				for (int k = 0; k < kn; ++k)
+					for (int j = 0; j < jn; ++j)
+						C[k][j] = 0;
+				int r;
+				//根据CMU Bryant,R.E.prof.的研究结果，矩阵乘法用kij或ikj模式，将是缓存更友好的，未命中率将极大地降低
+				for (int k = 0; k<kn; ++k)
+					for (int i = 0; i < in; ++i) {
+						r = A[i][k];
+						for (int j = 0; j < jn; ++j)
+							C[i][j] += r*B[k][j];
+					}
+			}
+		};
+		//LIS
+		//时间复杂度O(N*logN)
+		class LIS {
+		public:
+			void getlis(const vector<int>& v) {
+				if (v.empty()) return;
+				vector<int> vstk;
+				vstk.emplace_back(v[0]);
+				vector<int> dp(v.size(), 0);
+				dp[0] = 1;
+				for (int i = 1; i < v.size(); ++i)
+					if (v[i] > vstk.back()) {
+						vstk.emplace_back(v[i]);
+						dp[i] = vstk.size();
+					}
+					else {
+						auto itr = lower_bound(vstk.begin(), vstk.end(), v[i]);
+						*itr = v[i];
+						dp[i] = distance(vstk.begin(), itr) + 1;
+					}
+					printLis(dp, v);
+			}
+		private:
+			void printLis(const vector<int>& dp, const vector<int>& v) {
+				auto top = max_element(dp.begin(), dp.end());
+				int index = distance(dp.begin(), top);
+				vector<int> ret;
+				ret.emplace_back(v[index]);
+				for (int i = index - 1; i >= 0; --i) {
+					if (v[i] < v[index] && dp[i] == dp[index] - 1) {
+						ret.emplace_back(v[i]);
+						index = i;
+					}
+				}
+				reverse(ret.begin(), ret.end());
+				for (auto i : ret)
+					cout << i;
+			}
+		};
+		//表达式期望表达结果的组成总数
+		//expre="1^0|0|1",desire=false;则可能的组成有2种，1^(0|0|1)和 1^(0|(0|1))
+		//t[i][j],f[i][j]，时间复杂度为O(N**3)
+		class DesireCount {
+		public:
+			int desireCount(string& s, bool desire) {
+				if (s.empty()) return 0;
+				if (!isvalid(s)) return 0;
+				vector<vector<int>> t(s.length(), vector<int>(s.length(), 0));
+				vector<vector<int>> f(s.length(), vector<int>(s.length(), 0));
+				for (int i = 0; i < s.length(); i+=2) {
+					t[i][i] = s[i] == '0' ? 0 : 1;
+					f[i][i] = s[i] == '1' ? 0 : 1;
+					for (int j = i - 2; j >= 0; j -= 2) {
+						for (int k = j; k < i; k += 2) {
+							if (s[k + 1] == '&') {
+								t[i][j] += t[j][k] * t[k + 2][i];
+								f[i][j] += t[j][k] * f[k + 2][i] + f[j][k] * (f[k + 2][i] + t[k + 2][i]);
+							}
+							else if (s[k + 1] == '|') {
+								t[i][j] = t[j][k] * (f[k + 2][i] + t[k + 2][i]) + f[j][k] * t[k + 2][i];
+								f[i][j] = f[j][k] * f[k + 2][i];
+							}
+							else {
+								t[i][j] = t[j][k] * f[k + 2][i] + f[j][k] * t[k + 2][i];
+								f[i][j] = t[j][k] * t[k + 2][i] + f[j][k] * f[k + 2][i];
+							}
+						}
+					}
+				}
+				return desire ? t[0][s.length() - 1] : f[0][s.length() - 1];
+			}
+		private:
+			bool isvalid(string& s) {
+				if (s.length() & 1 != 1) return false;
+				for (int i = 0; i < s.length(); i += 2)
+					if (s[i] != '0'&&s[i] != '1')
+						return false;
+				for (int j = 1; j < s.length(); j += 2)
+					if (s[j] != '^'&&s[j] != '|'&&s[j] != '&')
+						return false;
+				return true;
+			}
+		};
+		//博弈类问题
+		//甲乙两个绝顶聪明的人在进行拿卡牌积分游戏，卡牌可见且呈一字龙蛇阵排开，约定每人每次只能从左边或右边拿一张牌，指定甲先拿，最后牌面总分多的人将获胜。
+		//试着判断谁将获胜和计算获胜者的总得分，甲第一次从左边还是右边拿起
+		class Card {
+		public:
+			int getTopGrade(const vector<int>& v) {
+				if (v.empty()) return 0;
+				int FirstPerson = getBest(v, 0, v.size() - 1);
+				int SecondPerson = getWorst(v, 0, v.size() - 1);
+				if (FirstPerson > SecondPerson) {
+					cout << "甲获胜" << endl;
+					int left = v[0] + getWorst(v, 1, v.size() - 1);
+					int right = v[v.size() - 1] + getWorst(v, 0, v.size() - 2);
+					if (left > right)
+						cout << "先从左边拿" << endl;
+					else
+						cout << "先从右边拿" << endl;
+					cout << "总得分" << FirstPerson << endl;
+				}
+				else{
+					cout << "乙获胜" << endl;
+					int left = getBest(v, 1, v.size() - 1);
+					int right = getBest(v, 0, v.size() - 2);
+					if (left < right)
+						cout << "先从左边拿" << endl;
+					else
+						cout << "先从右边拿" << endl;
+					cout << "总得分" << SecondPerson << endl;
+				}
+			}
+		private:
+			int getBest(const vector<int>& v, int i, int j) {
+				if (i == j) return v[i];
+				return max(v[i] + getWorst(v, i + 1, j), v[j] + getWorst(v, i, j - 1));
+			}
+			int getWorst(const vector<int>& v, int i, int j) {
+				if (i == j) return 0;
+				return min(getBest(v, i + 1, j), getBest(v, i, j - 1));
+			}
+		};
+
 	}
 }

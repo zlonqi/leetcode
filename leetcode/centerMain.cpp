@@ -467,6 +467,44 @@ private:
 	char* data = nullptr;
 	uint64_t size_t = 0;
 };
+
+class LIS {
+public:
+	void getlis(const vector<int>& v) {
+		if (v.empty()) return;
+		vector<int> vstk;
+		vstk.emplace_back(v[0]);
+		vector<int> dp(v.size(), 0);
+		dp[0] = 1;
+		for (int i = 1; i < v.size(); ++i)
+			if (v[i] > vstk.back()) {
+				vstk.emplace_back(v[i]);
+				dp[i] = vstk.size();
+			}
+			else {
+				auto itr = lower_bound(vstk.begin(), vstk.end(), v[i]);
+				*itr = v[i];
+				dp[i] = distance(vstk.begin(), itr) + 1;
+			}
+			printLis(dp, v);
+	}
+private:
+	void printLis(const vector<int>& dp, const vector<int>& v) {
+		auto top = max_element(dp.begin(), dp.end());
+		int index = distance(dp.begin(), top);
+		vector<int> ret;
+		ret.emplace_back(v[index]);
+		for (int i = index - 1; i >= 0; --i) {
+			if (v[i] < v[index] && dp[i] == dp[index] - 1) {
+				ret.emplace_back(v[i]);
+				index = i;
+			}
+		}
+		reverse(ret.begin(), ret.end());
+		for (auto i : ret)
+			cout << i;
+	}
+};
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -610,14 +648,17 @@ while (is.get(c))
 	//unique_ptr<int> uptr2(std::move(uptr));//std::move()转移了控制权后，uptr内的指针将会被置空，故无法再使用uptr了，uptr会在退出生存期的时候析构
 	//*uptr2 = 1;
 	//cout << *uptr << endl;
-	{
+	/*{
 		MyString s("123456");
 		MyString ss(std::move(s));
 		MyString sss;
 		sss = std::move(ss);
 		cout << sss.getString() << endl;
-	}
-	
+	}*/
+
+	vector<int> v = { 2,1,5,3,6,4,8,9,7 };
+	LIS l;
+	l.getlis(v);
 	system("pause");
 	return 0;
 }
