@@ -3441,7 +3441,7 @@ namespace DynamicPlanning
 		int m = s.size();
 		int n = t.size();
 		vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
-		vector<vector<string>> map(m + 1, vector<string>(n + 1, 0));
+		vector<vector<string>> map(m + 1, vector<string>(n + 1, "."));
 		for(int i=1;i<=m;++i)
 			for (int j = 1; j <= n; ++j) {
 				if (s[i - 1] == t[j - 1]) {
@@ -6845,7 +6845,7 @@ namespace OptimalSolution {
 			}
 		};
 	}
-	namespace dynamicPlan {
+	namespace DynamicPlanning {
 		//斐波那契问题:0、1、1、2、3、5、8、13、21
 		//Solution I：递归，时间复杂度O(N**2)
 		//Solution II:DP,时间复杂度O(N)，空间复杂度O(N)
@@ -7048,5 +7048,471 @@ namespace OptimalSolution {
 			}
 		};
 
+	}
+	namespace StringString {
+		//字符串中数字的求和
+		int StringSum(const string& s) {
+			if (s.empty()) return 0;
+			int i = 0;
+			int size = s.length();
+			int sum = 0;
+			while (i < size) {//"A-1BC--12"
+				int minusCount = 0;
+				while (s[i] == '-') {
+					minusCount++;
+					++i;
+				}
+				if (s[i] <= '9' && s[i] >= '0') {
+					int sumT = s[i++] - '0';
+					while (s[i] <= '9' && s[i] >= '0')
+						sumT = 10 * sumT + (s[i++] - '0');
+					//cout << "minusCount: " << minusCount << "\t" << "sumT: " << sumT << endl;
+					if (minusCount % 2 == 1)
+						sum -= sumT;
+					else
+						sum += sumT;
+				}
+				else
+					++i;
+			}
+			return sum;
+		}
+		//去掉字符串中出现的连续K个'0'字串
+		//'A000B00E000' ===> 'ab00e'
+		//时间复杂度O(N)，空间复杂度O(1)
+		string StripKchar(string s, int k) {
+			if (s.empty() || k < 1)
+				return s;
+			//fill@
+			int i = 0;
+			int size = s.length();
+			while (i < size) {
+				int count = 0;
+				if (s[i] == '0') {
+					while (s[i] == '0') {
+						count++;
+						i++;
+					}
+					if (count == k) {
+						while (count != 0) {
+							s[i - count] = '@';
+							--count;
+						}
+					}
+				}
+				else {
+					++i;
+				}
+			}
+			//strip@
+			int pos = -1;
+			int j = 0;
+			while (j < size) {
+				if (s[j] != '@')
+					s[++pos] = s[j++];
+				else
+					j++;
+			}
+			//s[++pos] = '\0';
+			return s.substr(0, pos + 1);
+		}
+		//判断互为互旋词,如'ab12'和'ab12','b12a','12ab',2ab1'就是互为互旋词
+		//Solution : mulrotate(string a, string b); c=a+a;kmp(c,b)//判断b是否为c的字串
+
+		//在有序但含有空的字符串数组中查找字符串，如['a',nullptr,'b','c',nullptr],target='c'; 找到了则返回最左边的下标return 3; or return -1;
+		//Solution : 因为是有序的，则考虑用到二分法降低时间复杂度，用一个unordered_map<string,int>存储字符串和下标的映射关系，从右往左遍历数组，把映射关系存入map，map.find查找target时间复杂度为O(1)
+
+		//字符串的调整与替换，如右边可无限扩充的"a b  c"，替换为"a%20b%20%20c"，从右往左替换
+		//再如"12**3456"移动为"**123456"，星号全部都提到前面，也是采用倒着复制的方法
+		//时间复杂度O(N)，空间复杂度O(1)
+		void moveChars(string& s) {
+			if (s.empty()) return;
+			//将非'*'字符复制到右半区
+			int size = s.length();
+			int i = size - 1;
+			int pos = size - 1;
+			while (i >= 0) {
+				if (s[i] != '*') {
+					s[pos--] = s[i--];
+				}
+				else
+					--i;
+			}
+			//将左半区清为'*'
+			while (pos >= 0)
+				s[pos--] = '*';
+		}
+		
+		//原地翻转字符串
+		//如翻转句子 "I'm a student." 翻为 "student. a I'm" 
+		//Solution : 先整体翻转 为 ".tneduts a m'I" ， 再对每个单词进行翻转为最终结果 "student. a I'm"
+		//再如把 "ABCDE" ，pivot=3,旋转为 DEABC
+		//Solution : 先把 s[0...pivot-1]和s[pivot...size-1]单独分别翻转为 "CBAED"，再把结果整体翻转为最终结果"DEABC"
+
+		//求字符串数组中两个字符串的最小距离，字符串不存在则return -1，如["1","3","3","2","3","1"],distance("1","2") = 2;
+		//Solution : 从左到右遍历，把最近遇到的的str1的下标记为last1，把最近遇到的str2的下标记为last2,当遇到str1时，计算 min(i-last2,minDst)，当遇到str2时，计算min(i-last1,minDst)
+		int StringMinDistance(const vector<string>& vs, string& str1, string& str2) {
+			if (vs.empty() || str1.empty() || str2.empty()) return -1;
+			if (str1 == str2) return 0;
+			int last1 = -1;
+			int last2 = -1;
+			int minDst = INT_MAX;
+			for (int i = 0; i < vs.size(); ++i) {
+				if (vs[i] == str1) {
+					if(last2 != -1)
+						minDst = min(i - last2, minDst);
+					last1 = i;
+				}
+				if (vs[i] == str2) {
+					if(last1 != -1)
+						minDst = min(i - last1, minDst);
+					last2 = i;
+				}
+			}
+			return minDst == INT_MAX ? -1 : minDst;
+		}
+		//如果发生查询的次数有很多，是否可以把单次查询的时间复杂度降到O(1)：可以。在初始化时对查询结果进行预计算并缓存在unordered_map<string,unordered_map<string,int>>中供查询。
+
+		//添加最少字符使得字符串变为回文串,如"AB"添加一个字符可变成回文串"ABA"或"BAB"并返回
+		//很像最短编辑距离，故DP方法，DP[i][j]表示要使S[i...j]为回文串最少需要添加dp[i][j]个字符
+		//推出dp公式，根据公式解题
+		//时间复杂度O(N**2)
+		string LeastInsertString(const string& s) {
+			if (s.empty() || s.length() == 1) return s;
+			int size = s.length();
+			vector<vector<int>> dp(size, vector<int>(size, 0));
+			//因为最后需要的是dp[0][size-1]，故动态规划要从左下往右上进行,且i>j没有意义，故只要计算倒三角
+			for (int j = 1; j < size; ++j) {//涉及到dp[i][j-1]，故j从1开始
+				dp[j - 1][j] = s[j] == s[j - 1] ? 0 : 1;//根据公式，j-i==1时的情况
+				for (int i = j - 2; i >= 0; --i) {//i==j没有意义，所以从j-1开始递减，以及涉及到dp[i+1][j]，故i最大只能为j-2
+					if (s[i] == s[j]) {
+						dp[i][j] = dp[i + 1][j - 1];
+					}
+					else {
+						dp[i][j] = min(dp[i + 1][j], dp[i][j - 1]) + 1;
+					}
+				}
+			}
+			//回溯一种可能的回文串
+			string res;
+			res.reserve(dp[0][size - 1] + size);
+			int i = 0;
+			int j = size - 1;
+			int lres = 0;
+			int rres = res.length() - 1;
+			while (i < j) {
+				if (s[i] == s[j]) {
+					res[lres++] = s[i++];
+					res[rres--] = s[j--];
+				}
+				else if (dp[i + 1][j] < dp[i][j - 1]) {
+					res[lres++] = s[i];
+					res[rres--] = s[i];
+					i++;
+				}
+				else {
+					res[lres++] = s[j];
+					res[rres--] = s[j];
+					j--;
+				}
+			}
+			return res;
+		}
+		//进阶问题：还是添加最少字符使得整个字符串变为回文串，如果再给定一个参数lps，它表示原串最长的回文子串，使得时间复杂度降为O(N)
+		//根据lps回文串对原串采用剥洋葱法，具体实现见原书
+
+		//判断括号配对是否完整，如"(()())"-True ")(()))"-False
+		//Solution I:用栈，遇到左括号则入栈，右括号弹栈(弹不出返回false，最后栈为空返回true，否则返回false，更复杂的括号配对问题通常也通过栈来解决，如"{[()[]]}"
+		//Solution II: 空间复杂度O(1)，从左往右遍历，遇到不是括号的返回false，碰到每个括号时，都统计并检查左右括号的数量，如果右括号比左括号多，则返回false，遍历结束后，如果左右括号一样多则返回true
+		//进阶问题：求最长的配对括号字串，如")()(())"最长的配对字串是s[1,6]长度是6
+		//Solution : 动态规划，dp[i]表示以s[i]结尾的字符串的最长配对字串长度为dp[i],公式见原书
+		int LongestSubMatchs(const string& s) {
+			if (s.empty()) return 0;
+			int size = s.length();
+			if (size < 2) return 0;
+			vector<int> dp(size, 0);
+			int pre;
+			int maxLen = INT_MIN;
+			for (int i = 1; i < size; ++i) {
+				if (s[i] == ')') {
+					pre = i - dp[i - 1] - 1;
+					if (pre >= 0 && s[pre] == '(')
+						dp[i] = dp[i - 1] + 2 + (pre - 1 > 0 ? dp[pre - 1] : 0);//加减优先级高于比较操作符
+				}
+				maxLen = max(dp[i], maxLen);
+			}
+			return maxLen;
+		}
+
+		//算术表达式求值(中缀表达式求值)，如"3+4*(5+6)-8/3"，假定表达式合法可计算
+		//Solution I : 作为栈的经典应用，算数表达式求值先将中缀表达式转换为后缀表达式(逆波兰表达式)，再对后缀表达式用栈进行求值，注意全程用浮点数
+		//Solution II: 递归求解
+		//栈求解,refer to 《数据结构(第三版)》（杨云清、揭安全) https://max.book118.com/html/2019/0529/8100132126002025.shtm
+		class ReversePolishNotation {
+		public:
+			ReversePolishNotation(string s) {
+				if (!s.empty()) {
+					transferToRePolish(s);
+					computeReversePolish();
+				}
+			}
+			//计算逆波兰表达式的值，栈的经典应用
+			void computeReversePolish() {
+				stack<float> stk;
+				for (auto s : v) {
+					if (!isOperator(s)) {
+						stk.emplace(stof(s));
+					}
+					else if (stk.size() == 1) {
+						cout << s;
+					}
+					else {
+						float y = stk.top();
+						stk.pop();
+						float x = stk.top();
+						stk.pop();
+						float num;
+						if (s == "+") num = x + y;
+						else if (s == "-") num = x - y;
+						else if (s == "*") num = x*y;
+						else num = x / y;
+						stk.emplace(num);
+					}
+				}
+				cout << stk.top() << endl;
+			}
+		private:
+			//中缀表达式转换为逆波兰表达式，也是栈的经典应用
+			//遍历到完整数字，追加到逆波兰表达式式尾
+			//遍历到左括号入栈，遇到右括号，弹栈直到遇到左括号，把弹出的元素追加到逆波兰表达式式尾
+			//遍历操作符ch，如果它的优先级小于等于栈顶操作符的优先级，则弹栈，把弹出的元素追加到逆波兰表达式式尾，最后把该操作符ch压栈，维持栈顶优先级最高
+			//遍历结束时，弹出所有的元素，并依次追加到逆波兰表达式式尾
+			void transferToRePolish(const string& s) {
+				int size = s.size();
+				stack<char> stk;
+				int i = 0;
+				while (i < size) {
+					if ((s[i] >= '0'&&s[i] <= '9') || s[i] == '.') {
+						int j = i;
+						while (s[i] >= '0'&&s[i] <= '9')
+							i++;
+						if (j - 1 >= 0 && (s[j - 1] == '-' || s[j - 1] == '+') && j - 2 >= 0 && s[j - 2] == '(') {
+							stk.pop();
+							v.emplace_back(s.substr(j - 1, i - j + 1));
+						}
+						else
+							v.emplace_back(s.substr(j, i - j));
+					}
+					else if (s[i] == '(') {
+						stk.push(s[i++]);
+					}
+					else if (s[i] == ')') {
+						while (stk.top() != '(') {
+							char ch = stk.top();
+							string ss;
+							ss += ch;
+							v.emplace_back(ss);
+							stk.pop();
+						}
+						stk.pop();
+						i++;
+					}
+					else {
+						if (stk.empty())
+							stk.emplace(s[i]);
+						else {
+							while (!stk.empty() && priority(s[i]) <= priority(stk.top())) {
+								v.emplace_back(string(stk.top(), 1));
+								stk.pop();
+							}
+							stk.emplace(s[i]);
+						}
+						i++;
+					}
+				}
+				while (!stk.empty()) {
+					char ch = stk.top();
+					string ss;
+					ss += ch;
+					v.emplace_back(ss);
+					stk.pop();
+				}
+
+				/*for (auto i : v)
+				cout << i << "\t";
+				cout << endl;*/
+			}
+			int priority(char ch) {
+				switch (ch) {
+				case '(': return 0;
+				case '-':
+				case '+': return 1;
+				case '*':
+				case '/': return 2;
+				default: return -1;
+				}
+			}
+			bool isOperator(const string& s) {
+				return s.size() == 1 && string("+-*/").find(s[0]) != string::npos;
+			}
+		private:
+			vector<string> v;
+		};
+		//给定一个整数N，由0和1组成的长度为N的二进制字符串，求0左边必为1的字符串数量，例如 N=1，只有"1"满足要求，return 1;N=2，"10"和"11"满足要求，return 2，N=3，return 3，N=4,return 5 
+		//Solution : dp，准确来讲是发现其中的数学增长规律,最后发现是斐波那契数列，如此就有时间复杂度为O(N)和O(logN)的解法
+		//dp0[i]，表示长度为i的二进制字符串中，以0结尾的有dp0[i]种可能，同样的，dp1[i]表示长度为i的二进制字符串中，以1结尾的有dp1[i]种。
+		int findRegularBinString(int n) {
+			if (n == 0) return 0;
+			vector<int> dp0(n + 1, 0);
+			vector<int> dp1(n + 1, 0);
+			dp0[1] = 0;
+			dp1[1] = 1;
+			for (int i = 2; i <= n; ++i) {
+				dp0[i] = dp1[i - 1];
+				dp1[i] = dp0[i - 1] + dp1[i - 1];
+			}
+			return dp0[n] + dp1[n];
+		}
+
+		//把字符数组排成字典序最小的组合(["b","ab"]的最小组合为["ab","b"]
+		//贪心解法，要做数学证明，证明 组合字典序的传递性，利用传递性作为贪心解法的合理性的支撑性证明
+		//严格的数学证明refer to offerGot45题和TopOffersGot
+		bool cmpString(const string& s1, const string& s2) {
+			return string(s1 + s2) < string(s2 + s1);
+		}
+		void sortString(vector<string>& vs) {
+			if (vs.empty() || vs.size() == 1) return;
+			sort(vs.begin(), vs.end(), cmpString);
+		}
+		//题目的另一种存在是把数组排成最小的数，如{3,32,321}，能排成最小的数为321323，考虑到越靠后拼接整型数定存在大数溢出的问题，所以在比较函数中应该转换为字符串再拼接再比较
+
+		//最小包含字串的长度，给定str1，和str2，在str1的字串中，找出包含str2全部字符的最短的那个字串，如str1="abcde",str2="bd",return "bcd"
+		//时间复杂度O(N)
+		//Solution : left&right trade-off balance
+		int MinSubStringLength(const string& s1, const string& s2) {
+			if (s1.empty() || s2.empty() || s1.length() < s2.length()) return 0;
+			vector<int> map(256, 0);
+			for (auto c : s2)
+				map[c]++;
+			int match = s2.length();
+			int left = 0;
+			int right = 0;
+			int minLen = INT_MAX;
+			while (right < s1.length()) {
+				map[s1[right]]--;
+				if (map[s1[right]] >= 0) {
+					match--;
+				}
+				if (match == 0) {
+					while (map[s1[left++]] < 0)
+						map[s1[left]]++;
+					minLen = min(minLen, right - left + 1);
+					map[s1[left++]]++;
+					match++;
+				}
+				right++;
+			}
+			return minLen == INT_MAX ? 0 : minLen;
+		}
+
+		//切割成回文子串的最少切割量
+		//经典dp,dp[i]表示，s[i,len-1]的最少分割量，具体解释见TopOffersGot第五章back3
+		int cutpardromeMin(const string& s) {
+			if (s.empty() || s.length() == 0) return 0;
+			int size = s.length();
+			vector<int> dp(size + 1, 0);
+			dp[size] = -1;
+			vector<vector<int>> map(size, vector<int>(size, 0));
+			for (int i = size - 1; i >= 0; i--) {
+				dp[i] = INT_MAX;
+				for (int j = i; j < size; ++j) {
+					if (s[i] == s[j] && (j - i < 2 || map[i + 1][j - 1] == 1)) {//s[i,j]是回文串
+						map[i][j] = 1;
+						dp[i] = min(dp[i], dp[j + 1] + 1);
+					}
+				}
+			}
+			return dp[0];
+		}
+
+		//前缀树(字典树)增删改查的实现
+		//程序设计题目，如设计LRU缓存
+		class TrieTree {
+		public:
+			class TrieNode;
+			TrieTree() {
+				root = new TrieNode();
+			}
+		public:
+			bool search(string& s) {
+				if (s.empty() || s.length() == 0) return;
+				TrieNode* node = root;
+				for (auto c : s) {
+					int index = c - 'a';
+					if ((node = node->map[index]) == nullptr)
+						return false;
+				}
+				return node->end != 0;
+			}
+			void insert(string& s) {
+				if (s.empty || s.length() == 0) return;
+				TrieNode* node = root;
+				for (auto c : s) {
+					int index = c - 'a';
+					if ((node = node->map[index]) == nullptr) {
+						node = new TrieNode();
+					}
+					node->path++;
+				}
+				node->end++;
+			}
+			void delStr(string& s) {
+				if (s.empty || s.length() == 0) return;
+				TrieNode* node = root;
+				if (search(s)) {
+					for (auto c : s) {
+						int index = c - 'a';
+						node = node->map[index];
+						if (node->path-- == 1) {
+							delete node;
+							node = nullptr;
+							return;
+						}
+					}
+					node->end--;
+				}
+				
+			}
+			int preQuery(string& s) {  //返回以s为前缀的串有几个
+				if (s.empty || s.length() == 0) return;
+				TrieNode* node = root;
+				for (auto c : s) {
+					int index = c - 'a';
+					if ((node = node->map[index]) == nullptr)
+						return 0;
+				}
+				return node->path;
+			}
+		private:
+			TrieNode* root;
+		private:
+			struct TrieNode {
+				int path;
+				int end;
+				vector<TrieNode*> map;
+				TrieNode() :path(0), end(0) {
+					map.reserve(26);
+					for (auto itr : map)
+						itr = nullptr;
+				}
+			};
+		};
+	}
+	namespace BigData {
+		//解决海量数据的统计问题
+		//布隆过滤器(计算m，计算k，BitMap,Murmurhash3(有32位和128位，根据计算所得m的值来确定用32位的还是128位的)
+		//哈希分流到机器，哈希分流到小文件，哈希统计词频，通过外排归并和堆结构解决topK问题
+		//BitMap解决海量数据的出现次数问题(未出现，出现一次，出现2次)
+		//一致性哈希算法（Murmurhash虚拟节点）
 	}
 }

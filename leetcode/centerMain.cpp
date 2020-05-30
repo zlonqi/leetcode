@@ -468,43 +468,117 @@ private:
 	uint64_t size_t = 0;
 };
 
-class LIS {
+class ReversePolishNotation {
 public:
-	void getlis(const vector<int>& v) {
-		if (v.empty()) return;
-		vector<int> vstk;
-		vstk.emplace_back(v[0]);
-		vector<int> dp(v.size(), 0);
-		dp[0] = 1;
-		for (int i = 1; i < v.size(); ++i)
-			if (v[i] > vstk.back()) {
-				vstk.emplace_back(v[i]);
-				dp[i] = vstk.size();
+	ReversePolishNotation(string s) {
+		if (!s.empty()) {
+			transferToRePolish(s);
+			computeReversePolish();
+		}
+	}
+	//计算逆波兰表达式的值，栈的经典应用
+	void computeReversePolish() {
+		stack<float> stk;
+		for (auto s : v) {
+			if (!isOperator(s)) {
+				stk.emplace(stof(s));
+			}
+			else if (stk.size() == 1) {
+				cout << s;
 			}
 			else {
-				auto itr = lower_bound(vstk.begin(), vstk.end(), v[i]);
-				*itr = v[i];
-				dp[i] = distance(vstk.begin(), itr) + 1;
-			}
-			printLis(dp, v);
-	}
-private:
-	void printLis(const vector<int>& dp, const vector<int>& v) {
-		auto top = max_element(dp.begin(), dp.end());
-		int index = distance(dp.begin(), top);
-		vector<int> ret;
-		ret.emplace_back(v[index]);
-		for (int i = index - 1; i >= 0; --i) {
-			if (v[i] < v[index] && dp[i] == dp[index] - 1) {
-				ret.emplace_back(v[i]);
-				index = i;
+				float y = stk.top();
+				stk.pop();
+				float x = stk.top();
+				stk.pop();
+				float num;
+				if (s == "+") num = x + y;
+				else if (s == "-") num = x - y;
+				else if (s == "*") num = x*y;
+				else num = x / y;
+				stk.emplace(num);
 			}
 		}
-		reverse(ret.begin(), ret.end());
-		for (auto i : ret)
-			cout << i;
+		cout << stk.top() << endl;
 	}
+private:
+	//中缀表达式转换为逆波兰表达式，也是栈的经典应用
+	//遍历到完整数字，追加到逆波兰表达式式尾
+	//遍历到左括号入栈，遇到右括号，弹栈直到遇到左括号，把弹出的元素追加到逆波兰表达式式尾
+	//遍历操作符ch，如果它的优先级小于等于栈顶操作符的优先级，则弹栈，把弹出的元素追加到逆波兰表达式式尾，最后把该操作符ch压栈，维持栈顶优先级最高
+	//遍历结束时，弹出所有的元素，并依次追加到逆波兰表达式式尾
+	void transferToRePolish(const string& s) {
+		int size = s.size();
+		stack<char> stk;
+		int i = 0;
+		while (i < size) {
+			if ((s[i] >= '0'&&s[i] <= '9') || s[i] == '.') {
+				int j = i;
+				while (s[i] >= '0'&&s[i] <= '9')
+					i++;
+				if (j - 1 >= 0 && (s[j - 1] == '-' || s[j - 1] == '+') && j - 2 >= 0 && s[j - 2] == '(') {
+					stk.pop();
+					v.emplace_back(s.substr(j - 1, i - j + 1));
+				}
+				else
+					v.emplace_back(s.substr(j, i - j));
+			}
+			else if (s[i] == '(') {
+				stk.push(s[i++]);
+			}
+			else if (s[i] == ')') {
+				while (stk.top() != '(') {
+					char ch = stk.top();
+					string ss;
+					ss += ch;
+					v.emplace_back(ss);
+					stk.pop();
+				}
+				stk.pop();
+				i++;
+			}
+			else {
+				if (stk.empty())
+					stk.emplace(s[i]);
+				else {
+					while (!stk.empty() && priority(s[i]) <= priority(stk.top())) {
+						v.emplace_back(string(stk.top(),1));
+						stk.pop();
+					}
+					stk.emplace(s[i]);
+				}
+				i++;
+			}
+		}
+		while (!stk.empty()) {
+			char ch = stk.top();
+			string ss;
+			ss += ch;
+			v.emplace_back(ss);
+			stk.pop();
+		}
+
+		/*for (auto i : v)
+			cout << i << "\t";
+		cout << endl;*/
+	}
+	int priority(char ch) {
+		switch (ch) {
+		case '(': return 0;
+		case '-':
+		case '+': return 1;
+		case '*':
+		case '/': return 2;
+		default: return -1;
+		}
+	}
+	bool isOperator(const string& s) {
+		return s.size() == 1 && string("+-*/").find(s[0]) != string::npos;
+	}
+private:
+	vector<string> v;
 };
+
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -655,10 +729,8 @@ while (is.get(c))
 		sss = std::move(ss);
 		cout << sss.getString() << endl;
 	}*/
-
-	vector<int> v = { 2,1,5,3,6,4,8,9,7 };
-	LIS l;
-	l.getlis(v);
+	string s = "123456";
+	cout << sizeof(s) << "\t" << s.length() << endl;
 	system("pause");
 	return 0;
 }
