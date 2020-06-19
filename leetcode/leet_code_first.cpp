@@ -508,7 +508,7 @@ namespace Array {
 			ret ^= i;
 		return ret;
 	}
-	//Find Single Number,从重复3次的数中找到唯一出现一次的数
+	//Find Single Number,从重复3次的数(int32)中找到唯一出现一次的数
 	//时间复杂度O(n)，空间复杂度O(1)
 	int findSinglenumber(const vector<int>& v) {
 		int ret = 0;
@@ -5329,7 +5329,7 @@ namespace OfferGot {
 		int sum = 0;
 		for (auto i : v) sum ^= i;
 		int pos = 1;
-		while (sum) {
+		while (sum) { //也可以用pos = sum&(~sum+1)来查找最右边第一个1
 			if (sum & 1 == 1) break;
 			sum >>= 1;
 			pos *= 2;
@@ -7514,5 +7514,234 @@ namespace OptimalSolution {
 		//哈希分流到机器，哈希分流到小文件，哈希统计词频，通过外排归并和堆结构解决topK问题
 		//BitMap解决海量数据的出现次数问题(未出现，出现一次，出现2次)
 		//一致性哈希算法（Murmurhash虚拟节点）
+	}
+	namespace BitOperation {
+		//不用比较运算符，返回两个数（int）中较大的那个
+		int flip(int n) {
+			return n ^ 1;
+		}
+		int sign(int n) {
+			return flip((n >> 31) & 1);
+		}
+		int getMax(int a, int b) {
+			int c = a - b;
+			int sa = sign(a);
+			int ba = sign(b);
+			int ca = sign(c);
+			int isDiff = sa^ba;
+			int isSame = flip(isDiff);
+			int returnA = isDiff*sa + isSame*ca;//isDiff=true时，a>0,b<0,返回a，a<0,b>0则返回b
+			int returnB = flip(returnA);
+			return returnA*a + returnB*b;
+		}
+
+		//不用+-*/实现加减乘除四则运算，不用考虑溢出
+		//能实现运算的只有+-*/和位运算操作符，所以在题目要求下，实现的途径只有位运算
+		//add,参考自offerGot的3步走
+		int add(int a, int b) {
+			int sum = b;
+			while (b != 0) {
+				sum = a^b;
+				b = (a&b) << 1;
+				a = sum;
+			}
+			return sum;
+		}
+		//minus，a-b==a+(-b)
+		int neg(int num) {
+			return add(~num, 1);
+		}
+		int minus(int a, int b) {
+			return add(a, neg(b));
+		}
+		//multi,模拟竖式乘法，每轮结果相加，即多项式相加
+		int multi(int a, int b) {
+			int product = 0;
+			while (b != 0) {
+				if (b & 1 == 1)
+					product = add(product, a);
+				b = b >> 1;
+				a = a << 1;
+			}
+			return product;
+		}
+		//divide,略复杂，不做要求
+
+		//其他数都出现K次的数组中，找出只出现一次的数
+		//位加法模拟K进制数
+		int findOnlyNum(const vector<int>& v, int k) {
+			assert(!v.empty());
+			int product = 0;
+			for (int i = 0; i < 32; ++i) {
+				int sum = 0;
+				for (auto num : v)
+					sum += (num >> i) & 1;
+				product |= (sum%k) << i;
+			}
+			return product;
+		}
+	}
+	namespace Array {
+		//斜Z字形打印矩阵
+		//1,2,3,4
+		//5,6,7,8
+		//打印为1,2,5,6,3,4,7,8
+		//Solution：H点从(0,0)出发每次向右移动(0,j++)，如果到了最右边则(j,i++)
+		//			L点从(0,0)同步出发，每次向下移动(i++,0)，如果到了最下边则(i,j++)
+		//			打印在HL连线上的点，注意，每次交替沿线打印的方向，直到H和L重合
+
+		//找到最小的K个数
+		//Solution I: 最大堆 时间复杂度O(NlogK)，空间复杂度O(K)
+		//Solution II: BFPRT O(N)，数组非const下O(N+K)，const可O(K)
+		class BFPRT {
+		public:
+			BFPRT(vector<int>& v, int k);//调用solve()
+			vector<int> solve();//调用select()得到第k小的数后，遍历数组，找到所有不比v[k]大的数即为solver
+		private:
+			vector<int> v;
+			int k;
+		private:
+			int select(int begin, int end, int k);//找到第k小的数
+			vector<int> mediumOfMedium();//获取中位数数组的中位数range
+			int getMedium(int i, int j);//获取5元组的中位数
+		};
+
+		//需要排序的最短子数组的长度
+		//[1,5,3,4,2,6,7] ==> [5,3,4,2]
+		//Solution I: 从左向右遍历数组，找到第一个下降点i，从右往左遍历，找到第一个上升点j，array[i,j]便是最短需要排序的子数组，长度为j-i+1
+
+		//在数组中找到出现次数大于一半的数，时间复杂度要求为O(N)
+		//Solution I:出现次数大于一半的数必然只有一个，且必定是排序之后的中位数，有成熟的时间复杂度为O(N)的算法找到第N/2小的数，如BFPRT方案,array非const时，空间复杂度为O(1)，array为const时需要额外O(N)的空间,但是与其这这样，还不如直接一个哈希表记录，空间复杂度也是O(N)，过程会简单地多
+		//Solution II:遍历数组，成对"删除"不相同的数，剩下的便是需要寻找的target.空间复杂度为O(1)
+		int findMoreHalfCommonNum(const vector<int>& v) {
+			if (v.empty()) return -1;
+			int tmp = v[0];
+			int times = 1;
+			for (int i = 1; i < v.size(); ++i) {
+				if (times == 0) {
+					tmp = v[i];
+					times = 1;
+				}
+				else if (tmp == v[i])
+					times++;
+				else
+					times--;
+			}
+			//CheckResultIsMoreHalf(v,tmp);
+
+			return tmp;
+		}
+		//进阶问题:找到出现次数大于N/K次的数，要求时间复杂度O(NK)，空间复杂度O(K)
+		//Solution: 遍历数组，同时需要一个大小为K-1的哈希表，每出现K个不相同的数，便"删除"，对最后剩下的可能是targets的进行过滤.去除出现少于N/K次的数
+		class MoreNKTimes {
+		public:
+			MoreNKTimes(const vector<int>& v, int k) :v_(std::move(v)), k_(k) {
+				//调用solver();
+			}
+		private:
+			void solver();
+		private:
+			const vector<int> v_;
+			int k_;
+			unordered_map<int, int> map_;
+		};
+		//变形问题，议案法定票数通过问题，获得2/3以上票数的通过，但计票员无法知道谁投谁，输出通过的议案
+		
+		//最长可整合数组的长度，可整合即为数组排序后相邻元素差值为1，例如[5,5,3,2,6,4,3]可整合的最长子数组为[5,3,2,6,4]
+		//Solution: 找出每一个子数组O(N**2)，并对其进行可整合判断(最大值-最小值+1==数组长度?可整合:非整合;时间复杂度为O(1))，总体时间复杂度为O(N**2)
+
+		//打印有序数组中不降序且和为K的二元组
+		//从首尾向中间同步遍历
+		void printTupple(const vector<int>& v, int k) {
+			if (v.size() < 2) return;
+			int begin = 0;
+			int end = v.size() - 1;
+			while (begin < end) {
+				int sum = v[begin] + v[end];
+				if (sum == k) {
+					if(begin==0 || v[begin]!=v[begin-1])
+						cout << v[begin] << "," << v[end] << endl;
+					begin++; end--;
+				}
+				else if (sum < k)
+					++begin;
+				else
+					--end;
+			}
+		}
+		//进阶:打印三元组
+		//Solution : 打印每个元素找它右边的和为k-v[i]的二元组即可
+		void printTuppleI(const vector<int>& v,int fst,int i, int k) {
+			if (v.size() < 2) return;
+			int begin = i;
+			int end = v.size() - 1;
+			while (begin < end) {
+				int sum = v[begin] + v[end];
+				if (sum == k) {
+					if (begin == i || v[begin] != v[begin - 1])
+						cout << fst << "," << v[begin] << "," << v[end] << endl;
+					begin++; end--;
+				}
+				else if (sum < k)
+					++begin;
+				else
+					--end;
+			}
+		}
+		void printThreeTupple(const vector<int>& v, int k) {
+			if (v.size() < 3) return;
+			for (int i = 0; i < v.size() - 2; ++i) {
+				if (i == 0 || v[i] != v[i - 1])
+					printTuppleI(v, i, i + 1, k - v[i]);
+			}
+		}
+		
+		//无序正数数组中和为k的最长子数组的长度
+		//时间复杂度O(N)，空间复杂度O(1)
+		int LongestSubSum(const vector<int>& v, int target) {
+			if (v.empty() || target < 1) return 0;
+			int left = 0;
+			int sum = v[0];
+			int right = 0;
+			int len = 0;
+			while (right < v.size()){
+				if (sum == target) {
+					len = max(len, right - left + 1);
+					sum -= v[left];
+					left++;
+				}
+				else if (sum < target) {
+					++right;
+					if (right == v.size())
+						break;
+					sum += v[right];
+				}
+				else
+					sum -= v[left++];
+			}
+			return sum;
+		}
+
+		//未排序的数组中累加和为定值的最长子数组系类问题
+		//在无序数组arr(可正、可负、0)中找出和为k的最长子数组
+		//Solution : 用一个哈希表存储sum同对应的index的映射,sum[i]表示arr[0,i]之和,如何s[i]-s[j]==k，则len = max(len(arr[j+1,i]),len),即max(i-j,len)
+		//时间复杂度O(N)，空间复杂度O(N)
+		int LongestSubSumI(const vector<int>& v, int k) {
+			if (v.empty()) return 0;
+			unordered_map<int, int> map;
+			map.insert(make_pair(0, -1));//very important p
+			int len = 0;
+			int sum = 0;
+			for (int i = 0; i < v.size(); ++i) {
+				sum += v[i];
+				if (map.find(sum - k) != map.end()) 
+					len = max(i - map[sum - k], len);
+				if (map.find(sum) == map.end())
+					map.insert(make_pair(sum, i));
+			}
+			return len;
+		}
+		//变形 : 若数组中只有0和1，求0和1数量相等的最长子数组，solution只需要把0变成-1，问题转变成了求和为0的最长子数组
+		//再变形 : 若求其中正负数量相等的最长子数组，solution只需要把正数变为1，负数变为-1，问题转变成了求和为0的最长子数组
 	}
 }
