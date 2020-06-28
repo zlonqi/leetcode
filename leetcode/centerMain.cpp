@@ -18,6 +18,7 @@ using namespace std;
 #include<memory>
 #define NDEBUG
 #include<assert.h>
+#include<Windows.h>
 
 //浮点数比较（数值分析之相对误差和绝对误差）
 const float RELATIVE_ERROR = 1e-6;
@@ -579,6 +580,65 @@ private:
 	vector<string> v;
 };
 
+const float absError = 1e-6;
+bool isEquire(float a, float b) {
+	return fabs(a - b) <= absError;
+}
+int random01p() {
+	float p = 0.87;//p值任意指定
+	//srand(time(nullptr));
+	float randomGet = ((float)(rand() % 1000)) / 1000;
+	return (randomGet < 0.87||isEquire(randomGet,p)) ? 0 : 1;
+}
+
+class Num2Chinese {
+public:
+	Num2Chinese(int num) {
+		translater(num);
+	}
+private:
+	void translater(int n) {
+		string ret;
+		bool isMinus = n < 0 ? true : false;
+		if (n == 0) {
+			cout << Cmap_[n] << endl;
+			return;
+		}
+		if (n < 0) 
+			n = ~n+1;//非常值得注意的是，INT_MIN用例是无法通过这条语句的，因为编译器为了防止-INT_MIN溢出，所以默认对INT_MIN取相反数失效
+		if (n % 10 > 0)
+			ret += Cmap_[n % 10];
+		n /= 10;
+		int bit = 1;
+		while (n > 0) {
+			if (n % 10 == 0 && n % 100 != 0) {
+				if(!ret.empty())
+					ret = Cmap_[n % 10] + ret;
+			}
+			else {
+				if (n % 10 != 0) {
+					ret = Bmap_[bit] + ret;
+					ret = Cmap_[n % 10] + ret;
+				}
+			}
+			bit++;
+			n /= 10;
+		}
+
+		if (isMinus)
+			cout << "负";
+		cout << ret << endl;
+		/*输出中文，特别重要!先转char* ，再printf
+		const char* s = ret.c_str();
+		for (int i = 0; i < ret.size(); i=i+2)
+			printf("%c%c", ret[i],ret[i+1]);
+		*/
+	}
+private:
+	vector<string> Cmap_ = { "零","一","二","三","四","五","六","七","八","九" };
+	vector<string> Bmap_ = { "个","十","百","千","万","十","百","千","亿","十","百" };//INT_MAX=2147483647;
+	char ch = '四';
+};
 int main(int argc, char** argv) {
 	//注释：     先CTRL+K，然后CTRL+C
 	//取消注释： 先CTRL + K，然后CTRL + U
@@ -729,8 +789,10 @@ while (is.get(c))
 		sss = std::move(ss);
 		cout << sss.getString() << endl;
 	}*/
+	//int32的最小值该用INT_MIN表示，而不能用临界值-2147483648表示，因为编译器怕以后对该数进行取反后当正数使用超出了正数表示范围造成隐患https://blog.csdn.net/liuhhaiffeng/article/details/53991071
 	string s = "123456";
-	cout << sizeof(s) << "\t" << s.length() << endl;
+	Num2Chinese obj(INT_MAX);
+	cout << INT_MIN << "\t" << INT_MAX << endl;
 	system("pause");
 	return 0;
 }

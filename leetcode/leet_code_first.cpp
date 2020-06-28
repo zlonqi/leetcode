@@ -499,6 +499,24 @@ namespace Array {
 				vret[i - 1] = max(vret[i]+1, vret[i - 1]);
 		return accumulate(vret.begin(), vret.end(), 0);
 	}
+	//增加一个条件，相邻且得分相同的孩子所得的糖果必须一样多
+	int getMinCandyI(vector<int>& v) {
+		int n = v.size();
+		vector<int> vret(n, 1);
+		for (int i = 1; i < n; ++i) {
+			if (v[i] > v[i - 1])
+				vret[i] = vret[i - 1] + 1;
+			else if (v[i] == v[i - 1])
+				vret[i] = max(vret[i], vret[i - 1]);
+		}
+		for (int i = n - 1; i > 0; --i){
+			if (v[i - 1] > v[i])
+				vret[i - 1] = max(vret[i] + 1, vret[i - 1]);
+			else if (v[i - 1] == v[i])
+				vret[i - 1] = max(vret[i - 1], vret[i]);
+		}
+		return accumulate(vret.begin(), vret.end(), 0);
+	}
 	//Find Single Number,从重复2次的数中找到唯一出现一次的数
 	//异或，出现偶数次都可以清零
 	//时间复杂度O(n)，空间复杂度O(1)
@@ -2135,6 +2153,7 @@ namespace sorting {
 	//Sort Colors
 	//We use the integers 0,1,2 to represent the color red, white,blue.
 	//Sort them so thatthe same color are adjacent, with the colors in the order red, white and blue
+	//变形的情景 : 给定一个数组和一个数k，排序数组使得小于k的数在左边，等于k的数在中间，大于k的数在右边
 	//Simple Solution:Two-Pass
 	void TwoPass(vector<int>& v) {
 		int color[3] = { 0 };
@@ -5099,8 +5118,8 @@ namespace OfferGot {
 	//1-n的整数中1出现的个数
 	int getNthCharOfNumString(int n) {
 		assert(n >= 0);
-		if (n < 10) return n;
-		if (n == 10) return 1;
+		if (n < 10) return 1;
+		if (n == 10) return 2;
 		int sum = 1;
 		int i = 0;
 		while (sum < n) {
@@ -5640,6 +5659,7 @@ namespace OfferGot {
 	}
 	//不用除法构建乘积数组，题目描述见剑指offer
 	//构造两个辅助数组，存放左右两部分的乘积，时间复杂度为O(n)
+	//若要使得空间复杂度为O(1)，参考剑指Offer原书或OptimalSolution::multipSolverII
 	vector<int> buildMultiMatrix(vector<int>& A) {
 		if (A.size() < 2) return vector<int>{};
 		vector<int> B;
@@ -7438,14 +7458,15 @@ namespace OptimalSolution {
 		//前缀树(字典树)增删改查的实现
 		//程序设计题目，如设计LRU缓存
 		class TrieTree {
+		private:
+			struct TrieNode;
 		public:
-			class TrieNode;
 			TrieTree() {
 				root = new TrieNode();
 			}
 		public:
 			bool search(string& s) {
-				if (s.empty() || s.length() == 0) return;
+				if (s.empty() || s.length() == 0) return false;
 				TrieNode* node = root;
 				for (auto c : s) {
 					int index = c - 'a';
@@ -7455,7 +7476,7 @@ namespace OptimalSolution {
 				return node->end != 0;
 			}
 			void insert(string& s) {
-				if (s.empty || s.length() == 0) return;
+				if (s.empty() || s.length() == 0) return;
 				TrieNode* node = root;
 				for (auto c : s) {
 					int index = c - 'a';
@@ -7467,7 +7488,7 @@ namespace OptimalSolution {
 				node->end++;
 			}
 			void delStr(string& s) {
-				if (s.empty || s.length() == 0) return;
+				if (s.empty() || s.length() == 0) return;
 				TrieNode* node = root;
 				if (search(s)) {
 					for (auto c : s) {
@@ -7484,7 +7505,7 @@ namespace OptimalSolution {
 				
 			}
 			int preQuery(string& s) {  //返回以s为前缀的串有几个
-				if (s.empty || s.length() == 0) return;
+				if (s.empty() || s.length() == 0) return 0;
 				TrieNode* node = root;
 				for (auto c : s) {
 					int index = c - 'a';
@@ -7743,5 +7764,505 @@ namespace OptimalSolution {
 		}
 		//变形 : 若数组中只有0和1，求0和1数量相等的最长子数组，solution只需要把0变成-1，问题转变成了求和为0的最长子数组
 		//再变形 : 若求其中正负数量相等的最长子数组，solution只需要把正数变为1，负数变为-1，问题转变成了求和为0的最长子数组
+
+		//找出无序数组中和小于等于k的最长子数组
+		//solution : 和上一题类似，sum[i]表示sum(arr[0,i])，遍历数组，每得到一个sum[i]，找到j使得sum[j]大于等于sum[i]-k，j尽可能小
+		//时间复杂度O(NlogN)，空间复杂度O(N)
+		int noMoreThanLength(const vector<int>& v, int k) {
+			if (v.empty()) return 0;
+			vector<int> map(v.size()+1, 0);
+			int sum = 0;
+			for (int i = 0; i < v.size(); ++i) {
+				sum += v[i];
+				map[i + 1] = max(map[i], sum);
+			}
+			sum = 0;
+			int len = 0;
+			for (int i = 0; i < v.size(); ++i) {
+				sum += v[i];
+				auto pos = lower_bound(map.begin(), map.end(), sum - k);
+				int distan = pos != map.end() ? pos - map.begin() + 1 : 0;
+				len = max(len, distan);
+			}
+			return len;
+		}
+
+		//自然数数组的排序
+		//将自然数1-N打乱放入size为N的数组中，不可用直接赋值的方式重新排序
+		//时间复杂度O(N)，空间复杂度O(1)
+		void sortedAgain(vector<int>& v) {
+			if (v.empty() || v.size() < 2) return;
+			for (int i = 0; i < v.size(); ++i) 
+				while (v[i] != i + 1) {
+					int cur = v[i];
+					int tmp = v[cur-1];
+					v[cur - 1] = v[i];
+					v[i] = tmp;
+				}
+		}
+		
+		//将偶数下标置偶数元素或将奇数下标置奇数元素
+		//设even为最左边的偶下标，odd为最左边奇下标，初始化时有even=0,odd=1,以arr[N-1]为比较基准，若为奇，则和arr[odd]交换，odd+=2;若为偶，则和arr[even]交换，even+=2;
+		//时间复杂度O(N)，空间复杂度为O(1)
+		void FixOddEven(vector<int>& v) {
+			if (v.empty()) return;
+			int even = 0;
+			int odd = 1;
+			int N = v.size();
+			while (even < N && odd < N) {
+				if (v[N - 1] & 1 == 1){
+					swap(v[odd], v[N - 1]);
+					odd += 2;
+				}
+				else {
+					swap(v[even], v[N - 1]);
+					even += 2;
+				}
+			}
+		}
+
+		//返回子矩阵的最大累加和
+		//划分为子数组最大累加和问题，和OptimalSolution::StackAndQueue::MaxSubMatrix()解题思路类似
+		//时间复杂度O(N**3)
+		int SubMatrixMaxSum(const vector<vector<int>>& vv) {
+			if (vv.empty() || vv[0].empty()) return INT_MIN;
+			int maxSum = INT_MIN;
+			vector<int> curSubMatrix(vv[0].size(), 0);
+			for (int i = 0; i < vv.size(); ++i) {
+				curSubMatrix.clear();
+				for (int j = i; j < vv.size(); ++j) {
+					int sum = 0;
+					for (int k = 0; k < vv[0].size(); ++k) {
+						curSubMatrix[k] += vv[j][k];
+						sum += curSubMatrix[k];
+						maxSum = max(maxSum, sum);
+						sum = sum < 0 ? 0 : sum;
+					}
+				}
+			}
+		}
+
+		//找序列的一个局部最小位置，数组无序且各不相同，局部最小值是指数据的凹点
+		//solution : 普通方法遍历数组,O(N)
+		//Solution I: 二分法，O(logN)
+		int findLowPivot(const vector<int>& v) {
+			if (v.empty()) return -1;
+			if (v.size() == 1) return 0;
+			if (v[0] < v[1]) return 0;
+			int N = v.size();
+			if (v[N - 1] < v[N - 2]) return N - 1;
+			int left = 1;
+			int right = N - 2;
+			while (left < right) {
+				int mid = (right - left) / 2 + left;
+				if (v[mid - 1] < v[mid])
+					right = mid - 1;
+				else if (v[mid] > v[mid + 1])
+					left = mid + 1;
+				else
+					return mid;
+			}
+			return left;
+		}
+
+		//打印N个有序数组的topK
+		//建立一个大小为N的最小堆，建堆时把数组的尾部元素放入，打印堆根，假设为arrk[i]，再把arrk[i-1]替换堆根，调整堆，再打印堆根，如果这一数组打印完了，把堆尾放到堆根，堆的size减一，调整堆再打印堆根，知道找到了topK
+		//时间复杂度O(K*logN)，因为不用遍历所有元素，只需遍历K个元素，所以它的时间复杂度远小于O(N*logK)
+		
+		//边界都是1的最大正方形大小
+		//参考了leetcode高票解法,时间复杂度O(N**3)，空间复杂度O(N**2)
+		int maxSubSquare(vector<vector<int>>& vv) {
+			if (vv.empty() || vv[0].empty()) return 0;
+			int m = vv.size();
+			int n = vv[0].size();
+			vector<vector<int>> left(m, vector<int>(n, 0));//记录点vv[i][j]左边有多少个连续的1(包括这个点)
+			vector<vector<int>> up(m, vector<int>(n, 0));//记录上边有多少个连续的1
+			for (int i = 0; i < m; ++i){
+				left[i][0] = vv[i][0];
+				for (int j = 1; j < n; ++j) 
+					left[i][j] = vv[i][j] ? left[i][j - 1] + 1 : 0;
+			}
+			for (int j = 0; j < n; ++j) {
+				up[0][j] = vv[0][j];
+				for (int i = 1; i < m; ++i)
+					up[i][j] = vv[i][j] ? up[i - 1][j] + 1 : 0;
+			}
+			int longest = 0;
+			for(int i=0;i<m;++i)
+				for (int j = 0; j < n; ++j) {
+					if (vv[i][j]) {
+						int len = min(left[i][j], up[i][j]);
+						int t = i - len + 1;
+						int k = j - len + 1;
+						while (longest < len) {
+							if (left[t][j] >= len && up[i][k] >= len) {
+								longest = max(longest, len);
+								break;
+							}
+							t++;
+							k++;
+							len--;
+						}
+					}
+				}
+		}
+
+		//不含本位置值的累乘数组，即除自己外，让其他位置累乘，要求{O(N),O(1)}
+		//Solution I : 除法，注意不能除0，当只有一个零，该位的结果等于其他位置累乘，其他位置为0；当不止一个零时，结果全为0；没有零时进行除法即可
+		vector<int> multipSolverI(const vector<int>& v) {
+			if (v.empty() || v.size() == 1) return vector<int>();
+			int countZero = 0;
+			int product = 1;
+			for (auto n : v) {
+				if (n != 0)
+					product *= n;
+				else
+					countZero++;
+			}
+			vector<int> res(v.size(), 0);
+			if (countZero == 0) {
+				for (int i = 0; i<v.size(); ++i)
+					res[i]=product / v[i];
+			}
+			if (countZero == 1) {
+				for (int i = 0; i < v.size(); ++i)
+					if (v[i] == 0)
+						res[i] = product;
+			}
+			return res;
+		}
+		//Solution II: 不使用除法，res[i]=left[i-1]*right[i+1]; left[i-1]表示v[i]左边的累乘，right[i+1]表示v[i]右边的累乘
+		//为了满足O(1)空间复杂度，实际解法和OfferGot::构建乘积数组相同
+		vector<int> multipSolverII(const vector<int>& v) {
+			if (v.empty() || v.size() == 1) return vector<int>();
+			vector<int> res(v.size(), 1);
+			res[0] = v[0];
+			for (int i = 1; i < v.size(); ++i) 
+				res[i] = res[i - 1] * v[i];
+			int tmp = v[v.size()-1];
+			for (int i = v.size() - 2; i >= 0; --i) {
+				res[i] = res[i - 1] * tmp;
+				tmp *= v[i];
+			}
+			return res;
+		}
+
+		//数组的partion
+		//将一个有序但含有重复元素的数组整理，使得左边无重复元素且升序，右边随意
+		//Solution : 和 Array::removeDuplicates情景类似，不过那里是覆盖，这里是swap
+		void partionToLeftNoDuplicate(vector<int>& v) {
+			if (v.empty() || v.size() == 1) return;
+			int u = 0;//v[0,u]为无重复的sorted区--左半区
+			int i = 1;//v[u+1,i]为右半区
+			while (i < v.size()) {
+				if (v[u] != v[i]) {
+					swap(v[++u], v[i++]);//将v[i]放入到v[u+1]的位置
+				}
+			}
+		}
+
+		//找出未排序数组中未出现的最小正整数
+		//Solution I : 根据自然数数组的特点先排序，对于已经排序的自然数数组，正整数从1-N，如果v[i]！=i-1则出现缺失，否则返回默认缺失v.size()+1
+		int findTheLossOne(vector<int>& v) {
+			if (v.empty() || v.size() == 1) return -1;
+			for (int i = 0; i < v.size(); ++i) {//自然数组排序
+				while (v[i] >= 1 && v[i] <= v.size() && v[i] != i + 1)
+					swap(v[i], v[v[i] - 1]);
+			}
+			int loss = v.size() + 1;
+			for(int i=0;i<v.size();++i)
+				if (v[i] != i + 1) {
+					loss = i + 1;
+					break;
+				}
+			return loss;
+		}
+
+		//数组排序后相邻数的最大差值
+		//桶排序，然后遍历找差值
+
+	}
+	namespace Others {
+		//给定一个等概率产生1-5的随机数生成器，利用这个实现从随机5等概率产生随机7的随机数
+		//Solution  : 利用乘法和加法不改变概率的特性来组合实现
+		int random1_5() {
+			//srand(time(nullptr));//启用这个会造成短时间大量调用random5()的随机种子一样，从而返回的随机值是一样的，所以关闭这个开关
+			return rand() % 5 + 1;
+		}
+		int random1_7() {
+			int randGet;
+			do{
+				randGet = (random1_5()-1) * 5 + random1_5()-1;//等概率生成0-24上的随机数
+			}while (randGet > 20);//等概率生成0-20上的整数
+			return randGet % 7 + 1;
+		}
+
+		//给定一个以概率p产生0，1-p概率产生1的随机数生成器，只用这个随机数生成器等概率产生1-6上的随机数
+		const float absError = 1e-6;
+		bool isEquire(float a, float b) {
+			return fabs(a - b) < absError;
+		}
+		int random01p() {
+			float p = 0.87;//p值任意指定
+			float randomGet = ((float)(rand() % 1000)) / 1000;
+			return (randomGet < p || isEquire(randomGet, p)) ? 0 : 1;
+		}
+		
+		//solution : 因为p(1-p)和(1-p)p是等概率的，所以可以用random01p来等概率产生0或1，然后用加法和乘法不改变概率的特性如上题一样套出可行的表达式
+		int random01() {//等概率生成0或1
+			int get01;
+			do {
+				get01 = random01p();
+			} while (get01 == random01p());//当两次random的结果不为p(1-p)或(1-p)p时继续
+			return get01;
+		}
+		int random03() {//等概率生成0、1、2、3;
+			return random01() * 2 + random01();
+		}
+		int random0_15() {//等概率生成0-15的整数
+			return random03() * 4 + random03();
+		}
+		int random16() {
+			int randomGet;
+			do {
+				randomGet = random0_15();
+			} while (randomGet > 11);//等概率生成0-11上的整数
+			return randomGet % 6+1;//等概率生成1-6上的整数，每个数生成的概率均为1/6
+		}
+
+		//掌握了等概率生成随机数的特性后，可以根据任意一个等概率1-M生成器，改装成一个1-N等概率生成器
+
+		//欧几里得算法求最大公约数，即辗转相除法
+		int gcd(int m, int n) {
+			return n == 0 ? m : gcd(n, m%n);
+		}
+
+		//有关阶乘的两个问题
+		//计算N!结果末尾有多少个0.
+		//Solution : 观察规律发现，因子5的个数Z=N/5+N/(5**2)...+N/(5**i) {5**i>=N}，求末尾0的数量即是数因子5的数量，具体解释看左书，
+		int numCountZero(int N) {
+			if (N < 1) return -1;
+			int num = N;
+			int count = 0;
+			while (num != 0) {
+				count += (num / 5);
+				num /= 5;
+			}
+			return count;
+		}
+		//N!的结果用二进制表示，求最低位的那个1的位置
+		//Solution I : 参考google s2中采用bruijn序列的做法，即先(-N!)&(N!)&bruijn序列，参见https://halfrost.com/go_s2_de_bruijn/
+		//Solution II: 如上题，观察得出的规律，这里是找因子2的数量
+		int numRightOne(int N) {
+			if (N < 1) return -1;
+			int num = N;
+			int count = 0;
+			while (num != 0) {
+				num >>= 1;
+				count += num;
+			}
+			return count;
+		}
+
+		//判断点在不在多边形的内部(包括边上)
+		//Solution : 射线法，由点水平向右生成射线Y，如果Y与多边形的交点数为偶数，则在外部，为奇数则在图内部，特殊情景另外考虑
+		//参考hdu1756-射线法代码
+		struct Point {
+			double x, y;
+			Point(double x=0,double y=0):x(x),y(y){}
+
+			//向量+
+			Point operator +(const Point& b) const {
+				return Point(x + b.x, y + b.y);
+			}
+			//向量-
+			Point operator -(const Point& b)const {
+				return Point(x - b.x, y - b.y);
+			}
+			//点积
+			double operator *(const Point& b)const {
+				return x*b.x + y*b.y;
+			}
+			//叉积
+			//P^Q>0，P在Q的顺时针方向；<0，P在Q的逆时针方向；=0，P，Q共线，可能正向可能反向
+			double operator ^(const Point& b)const {
+				return x*b.y - b.x*y;
+			}
+		};
+		float eps = 1e-6;
+		int dcmp(double x) {
+			if (fabs(x) < eps)
+				return 0;
+			else
+				return x < 0 ? -1 : 1;
+		}
+		bool OnSegment(Point& P1, Point& P2,Point& Q) {//判断点Q是否在P1和P2的线段上
+			return dcmp((P1 - Q) ^ (P2 - Q)) == 0 && dcmp((P1 - Q) * (P2 - Q)) <= 0;//前一个判断点Q在P1P2直线上 后一个判断在P1P2范围上
+		}
+		bool InPolygon(Point& P,vector<Point>& v) {//射线法
+			bool flag = false;
+			Point P1, P2;
+			int n = v.size();
+			for (int i = 0, j = n - 1; i < n; j = i++) {
+				P1 = v[i];
+				P2 = v[j];
+				if (OnSegment(P1, P2, P)) 
+					return true;
+				//前一个判断min(P1.y,P2.y)<P.y<=max(P1.y,P2.y)
+				//后一个判断被测点 在 射线与边交点 的左边
+				if ((dcmp(P1.y - P.y) > 0 != dcmp(P2.y - P.y) > 0) && dcmp(P.x - (P.y - P1.y)*(P1.x - P2.x) / (P1.y - P2.y) - P1.x) < 0)
+					flag = !flag;
+			}
+			return flag;
+		}
+
+		//判断两个矩形是否重叠
+		//solution : https://www.cnblogs.com/avril/archive/2013/04/01/2993875.html
+
+		//折纸问题，对折N次，打印所有折痕面向(up or down)
+		//很抽象，手动折纸找出规律，最后发现这是一颗满二叉树，根为down，左子树为down,右子树为up，按照BTree中序遍历可以按序打印所有折痕面向，具体解释参见左书
+		void printInBTree(int cur, int height, bool down) {
+			if (cur > height)
+				return;
+			printInBTree(cur + 1, height, true);
+			cout << (down ? "down" : "up") << "\t";
+			printInBTree(cur + 1, height, false);
+		}
+		void printAllFolds(int N) {
+			printInBTree(1, N, true);//根节点面向是down
+		}
+
+		//具有setAll功能的哈希表
+		//哈希表除了具有put,get,containsKey，再增加一个setAll函数，把所有的key都设置成相同的value，请保证这4个函数的时间复杂度均为O(1)
+		//Solution : 给每个<k,v>设置一个单调的时间戳，类似于分布式数据库中的镜像版本控制，使之可重复读
+
+		//求数组中LeftMax和RightMax之差的最大值
+		//Solution I : 枚举，时间复杂度O(N**2)，空间复杂度O(1)
+		//Solution II : 用辅助空间，A[i]表示arr[0,i]上的最大值，B[i]表示arr[j,N-1]上的最大值，然后再枚举，找到LeftMax-RightMax的最大值
+		//Solution III : 最优解，时间复杂度O(N)，空间复杂度O(1)
+		int LeftRightMaxMax(const vector<int>& v) {
+			if (v.empty() || v.size() < 2) return INT_MIN;
+			int maxVal = INT_MIN;
+			for (auto i : v) 
+				maxVal = max(maxVal, i);
+			return maxVal - min(v[0], v[v.size() - 1]);
+		}
+
+		//RandomPool
+		//实现一个数据结构，支持insert(K)，delete(K)，K getRandomKey()三种操作，且时间复杂度均为O(1)
+		//insert和delete的时间复杂度均为O(1)，只能为哈希表，同时为了得RandomKey，每个新增的key都要指定一个index，index和key相互映射，为了保证index的连续性(这样rand()%index才有效)，delete时将deletIndex和lastKey相互新建立映射关系即可
+		template<typename T>
+		class RandomPool {
+		public:
+			void insert(T k) {
+				if (keyIndexMap_.find(k) == keyIndexMap_.end()) {
+					keyIndexMap_.insert(make_pair(k, size));
+					indexKeyMap_.insert(make_pair(size++, k));
+				}
+			}
+			void deleteKey(T k) {
+				if (keyIndexMap_.find(k) == keyIndexMap_.end())
+					return;
+				int deleteIndex = keyIndexMap_[k];
+				T lastKey = indexKeyMap_[--size];
+				keyIndexMap_.insert(make_pair(lastKey, deleteIndex));
+				indexKeyMap_.insert(make_pair(deleteIndex, lastKey));
+				keyIndexMap_.erase(k);
+				indexKeyMap_.erase(size);
+			}
+			T getRamdomKey() {
+				if (size == 0) return T();
+				int random = rand() % size;
+				return indexKeyMap_[random];
+			}
+		private:
+			int size_ = 0;
+			unordered_map<T, int> keyIndexMap_;
+			unordered_map<int, T> indexKeyMap_;
+		};
+
+		//正数数组的最小不可组成和，子集的最小和为min，最大和为max；最小不可组成和是[min,max]中不是子集和的最小的那个数，如果[min,max]中没有，则为max+1
+		int noSumMin(const vector<int>& v) {
+			if (v.empty()) return -1;
+			int sum = 0;
+			int minVal = INT_MAX;
+			for (auto n : v) {
+				minVal = min(minVal, n);
+				sum += n;
+			}
+			vector<bool> dp(sum + 1, false);
+			dp[0] = true;
+			dp[sum] = true;
+			for (auto n : v)
+				dp[n] = true;
+			for(int i=0;i<v.size();++i)
+				for (int j = sum; j >= v[i]; --j) 
+					dp[j] = j - v[i] ? true : dp[j];
+			int k;
+			for (k = minVal; k <= sum; ++k)
+				if (dp[k] == false)
+					break;
+			return k;
+		}
+
+		//伪K进制数下字符串和数字的互转，伪K进制数是指单个位上的数范围在[1,k]而非[0,k-1]，参见TopOfferGot
+
+		//等概率打印M个数
+		//Solution : i=random(N),打印a[i],后 swap(i,N-1)；M--; 然后在(0,N-2)上继续上述过程，直到M==0
+
+		//数字的中文表达，例如 319 -=》三百一十九
+		class Num2Chinese {
+		public:
+			Num2Chinese(int num) {
+				translater(num);
+			}
+		private:
+			void translater(int n) {
+				string ret;
+				bool isMinus = n < 0 ? true : false;
+				if (n == 0) {
+					cout << Cmap_[n] << endl;
+					return;
+				}
+				if (n < 0)
+					n = ~n + 1;//非常值得注意的是，INT_MIN用例是无法通过这条语句的，因为编译器为了防止-INT_MIN溢出，所以默认对INT_MIN取相反数失效
+				if (n % 10 > 0)
+					ret += Cmap_[n % 10];
+				n /= 10;
+				int bit = 1;
+				while (n > 0) {
+					if (n % 10 == 0 && n % 100 != 0) {
+						if (!ret.empty())
+							ret = Cmap_[n % 10] + ret;
+					}
+					else {
+						if (n % 10 != 0) {
+							ret = Bmap_[bit] + ret;
+							ret = Cmap_[n % 10] + ret;
+						}
+					}
+					bit++;
+					n /= 10;
+				}
+
+				if (isMinus)
+					cout << "负";
+				cout << ret << endl;
+				/*输出中文，特别重要!先转char* ，再printf
+				const char* s = ret.c_str();
+				for (int i = 0; i < ret.size(); i=i+2)
+				printf("%c%c", ret[i],ret[i+1]);
+				*/
+			}
+		private:
+			vector<string> Cmap_ = { "零","一","二","三","四","五","六","七","八","九" };
+			vector<string> Bmap_ = { "个","十","百","千","万","十","百","千","亿","十","百" };//INT_MAX=2147483647;
+			char ch = '四';
+		};
+
+		//设计一种消息接收并打印的结构，题目描述见左书
+		//sulution : bitMap
+
+		//
 	}
 }
