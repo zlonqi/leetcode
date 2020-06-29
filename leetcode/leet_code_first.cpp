@@ -8263,6 +8263,103 @@ namespace OptimalSolution {
 		//设计一种消息接收并打印的结构，题目描述见左书
 		//sulution : bitMap
 
-		//
+		//设计一个没有扩容负担的堆结构，只要保证是一个堆，无需堆排序
+		//Solution I: 用C++的vector动态扩容和手动缩容，时间复杂度为O(N)
+		//Solution II: 维护具有堆特性的满二叉树，使满二叉树保持大根堆或小根堆，addNode把新增节点追加到满二叉树末尾，lastNode指向这个新节点，size++，再从下往上单路进行keepHeap，popRoot操作将lastNode和rootNode的值交换，最后把lastNode析构，size--,lastNode指向满二叉树的尾部，再rootNode往下buildHeap。
+		//因为addNode和popRoot操作维护堆特性都只是沿着二叉树的一颗子树进行，所以它的时间复杂度取决于树的高度，即时间复杂度为O(logN)
+		typedef struct HeapNode {
+			int val;
+			HeapNode* left = nullptr;
+			HeapNode* right = nullptr;
+			HeapNode* parent = nullptr;
+			HeapNode(int v):val(v){}
+		} heapNode;
+		class FlexHeap {
+		public:
+			typedef std::function< bool(int n1, int n2)> cmptor;
+			FlexHeap(cmptor& cmp):cmpare(cmp){}
+			void addNode(int val);
+			int popRoot();
+		private:
+			cmptor cmpare;
+		private:
+			heapNode* lastNode = nullptr;
+			heapNode* rootNode = nullptr;
+			int size = 0;
+		};
+
+		//在两个等长的排序数组中找到中位数
+		//时间复杂度O(logN)，N为单个数组的长度
+		int findMediumInTwoSortArray(const vector<int>& va, const vector<int>& vb) {
+			if (va.empty() || va.size() != vb.size()) return INT_MIN;
+			int begin1 = 0;
+			int end1 = va.size() - 1;
+			int begin2 = 0;
+			int end2 = vb.size() - 1;
+			while (begin1 < end1) {
+				int mid1 = begin1 + (end1 - begin1) / 2;
+				int mid2 = begin2 + (end2 - begin2) / 2;
+				int offset = (end1 - begin1 + 1) & 1 ? 0 : 1;
+				if (va[mid1] < vb[mid2]) {
+					begin1 = mid1 + offset;
+					end2 = mid2;
+				}
+				else if (va[mid1] > vb[mid2]) {
+					begin2 = mid2 + offset;
+					end1 = mid1;
+				}
+				else {
+					return va[mid1];
+				}
+			}
+			return min(va[begin1], vb[begin2]);
+		}
+
+		//在两个排序数组中找到第K小的数
+		//时间复杂度为O(log(min(M,N)))，M,N为数组的长度，空间复杂度为O(1)
+		int findMediumInTwoSortArrayII(const vector<int>& va, int begin1, int end1,const vector<int>& vb, int begin2, int end2) {
+			if (va.empty() || va.size() != vb.size()) return INT_MIN;
+			while (begin1 < end1) {
+				int mid1 = begin1 + (end1 - begin1) / 2;
+				int mid2 = begin2 + (end2 - begin2) / 2;
+				int offset = (end1 - begin1 + 1) & 1 ? 0 : 1;
+				if (va[mid1] < vb[mid2]) {
+					begin1 = mid1 + offset;
+					end2 = mid2;
+				}
+				else if (va[mid1] > vb[mid2]) {
+					begin2 = mid2 + offset;
+					end1 = mid1;
+				}
+				else {
+					return va[mid1];
+				}
+			}
+			return min(va[begin1], vb[begin2]);
+		}
+
+		//在两个等长的排序数组中找到中位数，借用上一题的代码，注意是等长的数组
+		int findKthInTwoSortedArray(vector<int>& va, vector<int>& vb,int k) {
+			if (va.empty() || vb.empty()) return INT_MIN;
+			if (k <= 0 || k > va.size() + vb.size()) return INT_MIN;
+			vector<int>* lon = (va.size() > vb.size()) ? &va : &vb;
+			vector<int>* shot = (va.size() < vb.size()) ? &va : &vb;
+			int l = lon->size();
+			int s = shot->size();
+			//以下3种情况的具体解释参见左书的例子arrayA{1'-10'}、arrayB{1'-27'}
+			if (k <= s)		//例子中k=5
+				return findMediumInTwoSortArrayII(*lon, 0, k - 1, *shot, 0, k - 1);
+			if (k > l) {				//例子中k=32
+				if ((*shot)[s - 1] <= (*lon)[k - s - 1])
+					return (*lon)[k - s - 1];
+				if ((*lon)[l - 1] <= (*shot)[k - l - 1])
+					return (*shot)[k - l - 1];
+				return findMediumInTwoSortArrayII(*lon, k - s, l - 1, *shot, k - l, s - 1);
+			}
+			//例子中k=17
+			if ((*shot)[s - 1] <= (*lon)[k - s - 1]) 
+				return (*lon)[k - s - 1];
+			return findMediumInTwoSortArrayII(*lon, k - s, k - 1, *shot, 0, s - 1); 
+		}
 	}
 }

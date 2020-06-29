@@ -791,8 +791,9 @@ while (is.get(c))
 	}*/
 	//int32的最小值该用INT_MIN表示，而不能用临界值-2147483648表示，因为编译器怕以后对该数进行取反后当正数使用超出了正数表示范围造成隐患https://blog.csdn.net/liuhhaiffeng/article/details/53991071
 	string s = "123456";
-	Num2Chinese obj(INT_MAX);
-	cout << INT_MIN << "\t" << INT_MAX << endl;
+	vector<int> v = { 1,2,3,4,5,6 };
+	vector<int>* p = &v;
+	cout << (p[5]>p[4]) << endl;
 	system("pause");
 	return 0;
 }
