@@ -8361,5 +8361,135 @@ namespace OptimalSolution {
 				return (*lon)[k - s - 1];
 			return findMediumInTwoSortArrayII(*lon, k - s, k - 1, *shot, 0, s - 1); 
 		}
+
+		//两个有序数组相加和的TOPK问题，va,vb,k
+		//Solution I : pa和pb分别指向va，vb末尾，va[pa]+vb[pb]为第1大的和，然后比较va[pa-1]+vb[pb]和va[pa]+vb[pb-1]，取大的进行pa或pb的递减，知道找到第k大的数。时间复杂度为O(k)
+		vector<int> sumTOPK(const vector<int>& va, const vector<int>& vb, int k) {//此解法有bug
+			if (va.empty() || vb.empty()) return vector<int>();
+			if (k<1 || k>va.size() + vb.size()) return vector<int>();
+			auto pa = va.rbegin();
+			auto pb = vb.rbegin();
+			vector<int> ret;
+			while (k > 0) {
+				ret.emplace_back(*pa + *pb);
+				if (*pa + *(pb + 1) > *pb + *(pa + 1))
+					pa++;
+				else
+					pb++;
+				k--;
+			}
+			return ret;
+		}
+		//Solution II : 记录va[Na-1-k,Na-1]上元素依次和 vb[Nb-1-k,Nb-1]上的元素匹配结果，再排序取k个,时间复杂度为O(k**2)
+		//Solution III : 时间复杂度为O(klogk),用一个大小为k的最小堆(数组)来实现，每次弹出堆顶元素(再和堆尾元素交换)，再加入va[pa-1]+vb[pb]和va[pa]+vb[pb-1]，维护堆，继续如上过程直到TOPK
+
+		//词频TOPK问题
+		//Solution : 先用哈希表建立词频表，对词频表中的词条用TOPK小根堆存储，词频最低的位于堆顶，时间复杂度为O(Nlogk)
+
+		//进阶 : 假如词串是可以动态加入的，实现add操作，时间复杂度不超过O(logk)，再实现printTOPK操作，时间复杂度不超过O(k)
+		//Solution : 哈希表建立词频表，topK小根堆存储词条Node，再建立Node和其在堆中位置的映射表NodeIndexMap_，不在堆中value为-1；add时可能要keepHeap或buildHeap操作，时间复杂度为O(logk)，printTOPK只需要把堆(数组)输出即可
+
+		//扔棋子找临界楼层问题(找到恰好不碎的临界层)
+		//场景 : 给定楼层高为N，棋子数为K，试求最少扔多少次才能找到临界楼层，约定第0层为地面，在0层不碎棋子
+		//Solution : 转成{给定K数量棋子，扔M次，求最多能搞定多少层}这个场景
+		//这个方案是最优解，时间复杂度为O(logN),空间复杂度为O(k)
+		int log2N(int n) {//case 0 1 2 3 4 
+			int ret = -1;
+			while (n > 0) {
+				ret++;
+				n >>= 1;
+			}
+			return ret;
+		}
+		int chessBrokenFloor(int K, int N) {
+			if (K < 1 || N < 1) return 0;
+			int needKeys = log2N(N) + 1;
+			if (K >= needKeys)	//棋子够的话就很简单了
+				return needKeys;
+			vector<int> dp(K, 0);//详解dp请参加左书 map[i][j]=map[i][j-1]+map[i-1][j-1]+1;map[i][j]表示i个棋子扔j次最多能搞定map[i][j]层楼；只需返回结果无需遍历路径则用滚动数组表示以降低空间复杂度
+			int times = 0;//
+			int tmp;
+			while (true) {
+				times++;
+				int pre = 0;
+				for (int i = 0; i < dp.size(); ++i) {
+					tmp = dp[i];
+					dp[i] = dp[i] + pre + 1;
+					pre = tmp;
+					if (dp[i] >= N)
+						return times;
+				}
+			}
+		}
+
+		//画匠问题，给定一个数组，元素表示一幅画完成需要花费的时间，现在有n个画匠，画匠只能画连续的画(数组中的连续元素)，且画匠作画同时进行，试问如何划分任务使得完成全部画所需的时间最短
+		//最优解时间复杂度O(NlogS)，S为sum(a[0,N-1])
+		int countHCNeed(const vector<int>& v, int limit) {//假如一个画匠的精力为limit时长
+			int counts = 0;
+			int sum = 0;
+			for (auto n : v) {
+				if (n > limit)
+					return INT_MAX;
+				if (sum + n > limit) {
+					sum = n;
+				}
+				else {
+					sum += n;
+					counts++;
+				}
+			}
+			return counts;
+		}
+		int minTimeConsume(const vector<int>& v,int hc) {
+			if (v.empty() || hc < 1) return INT_MAX;
+			if (v.size() < hc) {
+				int maxTime = INT_MIN;
+				for (auto n : v)
+					maxTime = max(n, maxTime);
+				return maxTime;
+			}
+			else {
+				int sumTime = 0;
+				for (int n : v)
+					sumTime += n;
+				int left = 0;
+				int right = sumTime;
+				while (left < right - 1) {//这个条件要特别注意，因为如果left==right-1时，按照下面循环体内无break的逻辑，程序将陷入死循环
+					int mid = left / 2 + (right - left) / 2;
+					if (countHCNeed(v, mid) > hc) {
+						left = mid;
+					}
+					else {
+						right = mid;
+					}
+				}
+				return right;
+			}
+		}
+
+		//邮局选址问题，给定一个arr，arr[i]表示一户人家的一维坐标位置，打算建立N个邮局，邮局只能建在居民点上，使得所有居民到邮局的总距离最短，并返回该距离。
+		//经典DP，https://blog.csdn.net/jk_chen_acmer/article/details/79749238
+		//w[i][j]表示在arr[i,j]上建立一个邮局时最短距离为w[i][j]，有递推式 w[i][j]=w[i][j-1]+arr[j]-arr[(i+j)/2];
+		//dp[i][j]表示建立在arr[0,i]上建立j个邮局的最短距离，有递推式 dp[i][j]=min(dp[i][j],dp[k,j-1]+w[k+1,i])(k>n && k<i)，n为邮局个数
+		int nearstPostOffice(const vector<int>& v, int n) {
+			if (v.empty() || n < 1) return INT_MAX;
+			int size = v.size();
+			vector<vector<int>> w(size + 1, vector<int>(0, size + 1));
+			for (int i = 1; i <= size-1; ++i)
+				for (int j = i + 1; j <= size; ++j)
+					w[i][j] = w[i][j - 1] + v[j] - v[(i + j) / 2];
+
+			vector<vector<int>> dp(size + 1, vector<int>(0, size + 1));
+			for (int i = 1; i <= size; ++i)
+				dp[i][1] = w[1][i];
+
+			for (int i = 1; i <= n; ++i)//末邮局的位置
+				for (int j = 2; j <= min(i, n); ++j) {//邮局的个数，当然比点的个数少
+					dp[i][j] = INT_MAX;
+					for (int k = j; k <= i - 1; ++k) //枚举可转移的位置，当然比邮局个数大 ，因为k将dp[i][j]分隔为左右两部分，右部分的邮局数为1，左部分邮局数为j-1，所以k>=j-1
+						dp[i][j] = min(dp[i][j], dp[k][j - 1] + w[k + 1][i]);
+				}
+			return dp[size][n];
+		}
 	}
 }
